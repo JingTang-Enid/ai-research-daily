@@ -82,9 +82,25 @@
 <script>
 // ===== 每晚由实验夜班 agent 更新以下数据块 =====
 const LAB = {
-  project: null, // { name, status, question, hypothesis, plan }
-  pending: [],
-  log: []        // { date, mode, did, results, conclusion, next } — 新条目插入开头,保留 14 条
+  project: {
+    name: "OPD-Gap: on-policy 蒸馏在不同 teacher-student capacity gap 下何时失效?",
+    status: "active",
+    question: "固定任务与数据预算下,on-policy 蒸馏(reverse-KL GKD/OPD)相对 off-policy 蒸馏(SeqKD)的优势如何随 capacity gap 变化?teacher-NLL(student rollouts) 能否预测失效点?",
+    hypothesis: "H1: 小 gap 时 OPD ≥ SeqKD;H2: gap 增大时优势缩小甚至反转(Demystifying OPD 的 mismatch 病理),且 teacher-NLL 可提前预示;H3: on/off-policy 混合或退火可在大 gap 下恢复大部分损失。",
+    plan: "pilot: 加法 scratchpad 任务,teacher pythia-160m,students 14m/70m,GT-SFT vs SeqKD vs GKD,2 seeds → 之后升 410m teacher 拉出 3 档 gap,画 gap-增益曲线,再做缓解实验。"
+  },
+  pending: [
+    "[紧急] runner 半夜 02:04 CT 后没有心跳(疑似 Mac 睡眠),两个 job 还在排队。请确认 start.command 在跑,并把 Mac 设为接电源不睡眠(或 caffeinate -is),否则每晚实验窗口只有 ~1.5h。",
+    "选题确认:OPD capacity-gap 机制研究(mini-proposal 见 program.md),同意投入 2-3 晚吗?备选:post-training scaling 微缩复现 / TRACE 玩具验证。",
+    "teacher 是否升到 pythia-410m?fp32 全参微调约需 5-7GB,Mac 空闲内存 7.9GB 会吃紧;备选是留在 160m 或改 LoRA。"
+  ],
+  log: [
+    { date: "2026-07-22", mode: "开题模式",
+      did: "评估 3 个候选(OPD capacity-gap / scaling 微缩复现 / TRACE 玩具验证),选定 OPD-Gap 并写 mini-proposal;实现完整 pilot 代码(teacher 训练、SeqKD、reverse-KL GKD、mismatch 诊断)并在云端冒烟验证;投递 2 个 job:opdgap-a(teacher pythia-160m + 14m/70m 的 GT-SFT/SeqKD 基线,2 seeds)、opdgap-b(14m/70m 的 on-policy GKD 500 步,2 seeds)。",
+      results: "无实验数字:runner 心跳 02:04 CT 后停止(此前每 10 分钟一跳,存活约 1.5h),疑似 Mac 睡眠;job 已入队,runner 恢复后自动执行。基础设施本身正常:昨晚 smoke-test 成功,MPS 可用(matmul 50×2048=0.68s)。任务规模:train 20000 / eval 500,预算守卫 4.3-4.5h/job,中间指标持续落盘。",
+      conclusion: "课题设计与代码就绪,当前唯一瓶颈是 Mac 夜间睡眠导致 runner 存活时间不足。",
+      next: "收 opdgap-a/b 结果,验证 teacher ≥90% 与 SeqKD vs GKD 差异;补第 3 seed;升 410m teacher 拉 gap 轴。" }
+  ]        // { date, mode, did, results, conclusion, next } — 新条目插入开头,保留 14 条
 };
 // ===== 数据块结束 =====
 
