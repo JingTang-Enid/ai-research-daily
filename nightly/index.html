@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>夜间研究 · AI Research 日报</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7; --surface: #fcfcfb;
+    --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+    --grid: #e1e0d9; --border: rgba(11,11,11,0.10);
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4;
+    --chip-bg: #f0efec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page: #0d0d0d; --surface: #1a1a19;
+      --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+      --grid: #2c2c2a; --border: rgba(255,255,255,0.10);
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181;
+      --chip-bg: #383835;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page); color: var(--ink);
+    padding: 28px 20px 60px; max-width: 980px; margin: 0 auto;
+  }
+  nav { display: flex; gap: 16px; align-items: center; margin-bottom: 18px; font-size: 13px; }
+  nav .brand { font-weight: 700; }
+  nav a { text-decoration: none; color: var(--muted); }
+  nav a.active { color: var(--ink); font-weight: 600; }
+  h1 { font-size: 22px; font-weight: 700; }
+  .sub { color: var(--ink-2); font-size: 13.5px; margin: 5px 0 22px; line-height: 1.5; }
+  .day { margin-bottom: 26px; }
+  .day > h2 { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+  .run { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
+  .runhead { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+  .runhead .t { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .runhead .n { font-size: 12px; color: var(--muted); }
+  .f { padding: 9px 0; border-top: 1px solid var(--grid); }
+  .f:first-of-type { border-top: none; }
+  .f .line { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .f a { color: var(--ink); text-decoration: none; font-size: 13.5px; font-weight: 600; line-height: 1.4; }
+  .f a:hover { text-decoration: underline; }
+  .stars { color: var(--s4); font-size: 11.5px; letter-spacing: 1px; white-space: nowrap; }
+  .f .meta { font-size: 11.5px; color: var(--muted); margin-top: 2px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag { font-size: 11px; padding: 1px 8px; border-radius: 999px; background: var(--chip-bg); color: var(--ink-2); }
+  .f p { font-size: 12.5px; color: var(--ink-2); line-height: 1.5; margin-top: 5px; }
+  .empty { font-size: 13px; color: var(--muted); padding: 6px 0; }
+</style>
+</head>
+<body>
+<nav>
+  <span class="brand">autoResearch_AI</span>
+  <a href="../">今日日报</a>
+  <a href="./" class="active">夜间研究</a>
+  <a href="../archive/">历史存档</a>
+</nav>
+<h1>夜间研究(实时)</h1>
+<div class="sub">每晚 22:00 / 01:00 / 04:00(美中时间)各跑一轮自动研究,每轮结束后本页即时更新;早上 7:30 汇总去重后生成正式日报。保留最近 7 晚的记录。</div>
+<div id="days"></div>
+<script>
+// ===== 每轮夜间 agent 在 RUNS 数组开头插入本轮条目;并删除 7 天以前的旧条目 =====
+const RUNS = [
+  { date: "2026-07-21", run: 0, label: "Run 0 · 22:00 前 · 手动种子扫描", findings: [
+    { topic: "OPD", title: "Rethinking On-Policy Distillation: Phenomenology, Mechanism, and Recipe (THUNLP)", url: "https://arxiv.org/abs/2604.13016", type: "paper", stars: 4, summary: "OPD 现象与机制的系统分析 + 可复现 recipe,附开源代码。" },
+    { topic: "Agentic RL", title: "Rethinking Agentic Reinforcement Learning in LLMs", url: "https://arxiv.org/html/2604.27859v2", type: "paper", stars: 4, summary: "多轮工具使用、长程 credit assignment 与 reward 设计的批判性梳理。" },
+    { topic: "Self-Evolving", title: "Self-evolving LLM agents with in-distribution Optimization", url: "https://www.emergentmind.com/papers/2606.07367", type: "paper", stars: 4, summary: "让 agent 在部署分布上持续自我改进的在线优化方法。" },
+    { topic: "Post-training", title: "Post-Training in 2026: GRPO, DAPO, RLVR & Beyond", url: "https://llm-stats.com/blog/research/post-training-techniques-2026", type: "blog", stars: 3, summary: "2026 年 post-training 技术栈盘点。" },
+    { topic: "Post-training", title: "SFT versus RL: A Study of Post-Training Methods for LLMs", url: "https://arxiv.org/html/2603.13985v1", type: "paper", stars: 3, summary: "SFT 与 RL 在泛化、遗忘、推理上的实证对比。" },
+    { topic: "OPD", title: "A Survey of On-Policy Distillation for LLMs", url: "https://arxiv.org/html/2604.00626v3", type: "paper", stars: 3, summary: "OPD 综述:方法分类、与 RL/RLHF 关系、开放问题。" },
+    { topic: "AI Safety", title: "ICLR 2026 Oral Papers in AI Safety: 35 篇深读", url: "https://medium.com/@multimodal_bench/iclr-2026-oral-papers-in-ai-safety-a-35-paper-deep-dive-b5f8a250a0d1", type: "discussion", stars: 3, summary: "顶会 safety 方向 oral 论文趋势归纳。" },
+    { topic: "Agentic RL", title: "AgentGym-RL: 多轮 RL 训练长程决策 agent", url: "https://github.com/woooodyy/AgentGym-RL", type: "paper", stars: 3, summary: "长程决策 agent 的多轮 RL 训练框架与环境。" },
+    { topic: "Self-Evolving", title: "EvolveR: Experience-Driven Lifecycle 的自进化 agent", url: "https://arxiv.org/abs/2510.16079", type: "paper", stars: 3, summary: "经验积累-蒸馏-复用生命周期驱动的自进化。" }
+  ]}
+];
+// ===== 数据块结束 =====
+
+const byDate = {};
+RUNS.forEach(r => (byDate[r.date] = byDate[r.date] || []).push(r));
+document.getElementById("days").innerHTML = Object.keys(byDate).sort().reverse().map(d => `
+  <div class="day">
+    <h2>${d} 晚</h2>
+    ${byDate[d].sort((a,b)=>a.run-b.run).map(r => `
+      <div class="run">
+        <div class="runhead"><span class="t">${r.label}</span><span class="n">${r.findings.length} 条发现</span></div>
+        ${r.findings.length ? r.findings.map(f => `
+          <div class="f">
+            <div class="line">
+              <a href="${f.url}" target="_blank" rel="noopener">${f.title}</a>
+              <span class="stars">${"★".repeat(f.stars)}${"☆".repeat(5-f.stars)}</span>
+            </div>
+            <div class="meta"><span class="tag">${f.topic}</span><span>${f.type}</span></div>
+            <p>${f.summary}</p>
+          </div>`).join("") : '<div class="empty">本轮无新发现</div>'}
+      </div>`).join("")}
+  </div>`).join("");
+</script>
+</body>
+</html>
