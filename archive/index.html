@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>历史存档 · AI Research 日报</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7; --surface: #fcfcfb;
+    --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+    --border: rgba(11,11,11,0.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page: #0d0d0d; --surface: #1a1a19;
+      --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+      --border: rgba(255,255,255,0.10);
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page); color: var(--ink);
+    padding: 28px 20px 60px; max-width: 980px; margin: 0 auto;
+  }
+  nav { display: flex; gap: 16px; align-items: center; margin-bottom: 18px; font-size: 13px; }
+  nav .brand { font-weight: 700; }
+  nav a { text-decoration: none; color: var(--muted); }
+  nav a.active { color: var(--ink); font-weight: 600; }
+  h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .sub { color: var(--ink-2); font-size: 13.5px; margin-bottom: 22px; }
+  .row {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 18px; margin-bottom: 10px;
+  }
+  .row a { color: var(--ink); text-decoration: none; font-weight: 600; font-size: 14.5px; }
+  .row a:hover { text-decoration: underline; }
+  .row .meta { color: var(--muted); font-size: 12.5px; white-space: nowrap; }
+  .row .hl { color: var(--ink-2); font-size: 13px; line-height: 1.5; flex: 1; margin: 0 8px; }
+</style>
+</head>
+<body>
+<nav>
+  <span class="brand">autoResearch_AI</span>
+  <a href="../">今日日报</a>
+  <a href="./" class="active">历史存档</a>
+</nav>
+<h1>历史存档</h1>
+<div class="sub">每天早上 7:30 自动归档前一晚的研究日报</div>
+<div id="list"></div>
+<script>
+// ===== 每日由早报 agent 在数组开头插入一行 =====
+const DAYS = [
+  { date: "2026-07-21", file: "2026-07-21.html", findings: 9, highlight: "初始种子扫描:OPD 机制研究 (THUNLP)、Agentic RL 综述、self-evolving 6 月新作" }
+];
+// ===== 数据块结束 =====
+document.getElementById("list").innerHTML = DAYS.map(d => `
+  <div class="row">
+    <a href="${d.file}">${d.date}</a>
+    <span class="hl">${d.highlight}</span>
+    <span class="meta">${d.findings} 条发现</span>
+  </div>`).join("");
+</script>
+</body>
+</html>
