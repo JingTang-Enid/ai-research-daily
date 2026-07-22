@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>实验室 · AI Research 日报</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7; --surface: #fcfcfb;
+    --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+    --grid: #e1e0d9; --border: rgba(11,11,11,0.10);
+    --accent: #2a78d6; --warn-bg: #fdf6e3; --warn-border: #eda100;
+    --chip-bg: #f0efec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page: #0d0d0d; --surface: #1a1a19;
+      --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+      --grid: #2c2c2a; --border: rgba(255,255,255,0.10);
+      --accent: #3987e5; --warn-bg: #2a2417; --warn-border: #c98500;
+      --chip-bg: #383835;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page); color: var(--ink);
+    padding: 28px 20px 60px; max-width: 980px; margin: 0 auto;
+  }
+  nav { display: flex; gap: 16px; align-items: center; margin-bottom: 18px; font-size: 13px; flex-wrap: wrap; }
+  nav .brand { font-weight: 700; }
+  nav a { text-decoration: none; color: var(--muted); }
+  nav a.active { color: var(--ink); font-weight: 600; }
+  h1 { font-size: 22px; font-weight: 700; }
+  .sub { color: var(--ink-2); font-size: 13.5px; margin: 5px 0 22px; line-height: 1.5; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; margin-bottom: 16px; }
+  .panel h2 { font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: 10px; }
+  .status { display: inline-block; font-size: 11.5px; padding: 3px 10px; border-radius: 999px; background: var(--chip-bg); color: var(--ink-2); margin-left: 8px; vertical-align: 2px; }
+  .kv { margin: 8px 0; font-size: 13.5px; line-height: 1.6; }
+  .kv b { font-weight: 600; }
+  .kv .v { color: var(--ink-2); }
+  .pending { background: var(--warn-bg); border: 1px solid var(--border); border-left: 4px solid var(--warn-border); border-radius: 10px; padding: 14px 18px; margin-bottom: 16px; }
+  .pending h2 { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+  .pending ol { padding-left: 20px; }
+  .pending li { font-size: 13.5px; line-height: 1.6; margin: 5px 0; }
+  .pending .how { font-size: 12px; color: var(--ink-2); margin-top: 9px; }
+  .entry { border-top: 1px solid var(--grid); padding: 13px 0; }
+  .entry:first-of-type { border-top: none; padding-top: 4px; }
+  .ehead { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .ehead .d { font-weight: 700; font-size: 13.5px; }
+  .ehead .m { font-size: 11.5px; color: var(--muted); }
+  .entry p { font-size: 13px; color: var(--ink-2); line-height: 1.55; margin-top: 5px; }
+  .entry p b { color: var(--ink); font-weight: 600; }
+  .empty { color: var(--muted); font-size: 13.5px; padding: 4px 0; line-height: 1.6; }
+</style>
+</head>
+<body>
+<nav>
+  <span class="brand">autoResearch_AI</span>
+  <a href="../">今日日报</a>
+  <a href="../nightly/">论文扫描</a>
+  <a href="./" class="active">实验室</a>
+  <a href="../archive/">历史存档</a>
+</nav>
+<h1>实验室</h1>
+<div class="sub">agent 每晚 2:00(美中时间)自主选题、跑实验、记录结果;目标是 AI 顶会 workshop paper 级别的初步验证。白天留 comment,当晚执行。</div>
+
+<div id="pendingbox"></div>
+
+<div class="panel">
+  <h2>当前课题<span class="status" id="pstatus"></span></h2>
+  <div id="project"></div>
+</div>
+
+<div class="panel">
+  <h2>实验日志(最近 14 晚)</h2>
+  <div id="logs"></div>
+</div>
+
+<script>
+// ===== 每晚由实验夜班 agent 更新以下数据块 =====
+const LAB = {
+  project: null, // { name, status, question, hypothesis, plan }
+  pending: [],
+  log: []        // { date, mode, did, results, conclusion, next } — 新条目插入开头,保留 14 条
+};
+// ===== 数据块结束 =====
+
+const esc = s => (s || "").toString();
+if (LAB.project) {
+  document.getElementById("pstatus").textContent = esc(LAB.project.status);
+  document.getElementById("project").innerHTML = `
+    <div class="kv"><b>${esc(LAB.project.name)}</b></div>
+    <div class="kv"><b>研究问题:</b> <span class="v">${esc(LAB.project.question)}</span></div>
+    <div class="kv"><b>假设:</b> <span class="v">${esc(LAB.project.hypothesis)}</span></div>
+    <div class="kv"><b>当前计划:</b> <span class="v">${esc(LAB.project.plan)}</span></div>`;
+} else {
+  document.getElementById("pstatus").textContent = "no-active-project";
+  document.getElementById("project").innerHTML =
+    '<div class="empty">暂无进行中课题。下一次实验夜班(2:00 CT)将进入开题模式:从最近论文动态中找 gap,生成候选 idea 并选定一个开始 pilot 实验。</div>';
+}
+if (LAB.pending.length) {
+  document.getElementById("pendingbox").innerHTML = `
+    <div class="pending">
+      <h2>⏳ 等你 comment 的问题</h2>
+      <ol>${LAB.pending.map(q => `<li>${esc(q)}</li>`).join("")}</ol>
+      <div class="how">回复方式:在 autoResearch_AI 项目的任何 Claude 会话里直接说,或编辑项目里的 claude/feedback.md。当晚 2:00 夜班执行。</div>
+    </div>`;
+}
+document.getElementById("logs").innerHTML = LAB.log.length ? LAB.log.map(e => `
+  <div class="entry">
+    <div class="ehead"><span class="d">${esc(e.date)}</span><span class="m">${esc(e.mode)}</span></div>
+    <p><b>做了什么:</b>${esc(e.did)}</p>
+    <p><b>结果:</b>${esc(e.results)}</p>
+    <p><b>结论:</b>${esc(e.conclusion)}</p>
+    <p><b>下一步:</b>${esc(e.next)}</p>
+  </div>`).join("") :
+  '<div class="empty">还没有实验记录。第一晚的日志会出现在这里。</div>';
+</script>
+</body>
+</html>

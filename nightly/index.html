@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>夜间研究 · AI Research 日报</title>
+<title>论文扫描 · AI Research 日报</title>
 <style>
   :root {
     color-scheme: light;
@@ -57,11 +57,12 @@
 <nav>
   <span class="brand">autoResearch_AI</span>
   <a href="../">今日日报</a>
-  <a href="./" class="active">夜间研究</a>
+  <a href="./" class="active">论文扫描</a>
+  <a href="../lab/">实验室</a>
   <a href="../archive/">历史存档</a>
 </nav>
-<h1>夜间研究(实时)</h1>
-<div class="sub">每晚 03:00 / 05:00 / 07:00(美中时间)各跑一轮自动研究,每轮结束后本页即时更新;早上 9:00 汇总去重后生成正式日报。保留最近 7 晚的记录。</div>
+<h1>论文扫描</h1>
+<div class="sub">每天早上 7:00(美中时间)自动扫描 5 个方向的新论文、博客与社区热点;9:00 汇总进当天日报。保留最近 7 天的记录。</div>
 <div id="days"></div>
 <script>
 // ===== 每轮夜间 agent 在 RUNS 数组开头插入本轮条目;并删除 7 天以前的旧条目 =====
