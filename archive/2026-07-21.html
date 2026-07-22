@@ -103,7 +103,7 @@
 // ===== 每日由早报 agent 替换以下数据块 =====
 const REPORT = {
   date: "2026-07-21",
-  note: "初始种子扫描(手动 Run 0)· 今晚起将由 22:00 / 01:00 / 04:00 三轮自动研究填充",
+  note: "初始种子扫描(手动 Run 0)· 今晚起将由 03:00 / 05:00 / 07:00 三轮自动研究填充",
   runs: ["Run 0 (手动种子)"],
   tldr: [
     "THUNLP 的《Rethinking On-Policy Distillation》系统解析了 OPD 的现象与机制并给出可复现 recipe,是 OPD 方向目前最系统的工作(附代码)。",
@@ -206,7 +206,7 @@ function setTopic(t) { active = t; renderFilters(); renderCards(); }
 renderFilters(); renderCards();
 
 document.getElementById("foot").textContent =
-  "autoResearch_AI · 每晚 22:00 / 01:00 / 04:00 (美中时间) 自动研究,每天 7:30 汇总更新本面板 · 完整日报存档在 autoResearch_AI 项目的 claude/daily/ 下";
+  "autoResearch_AI · 每晚 03:00 / 05:00 / 07:00 (美中时间) 自动研究,每天 8:00 汇总更新本面板 · 完整日报存档在 autoResearch_AI 项目的 claude/daily/ 下";
 </script>
 </body>
 </html>
