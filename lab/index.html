@@ -90,11 +90,16 @@ const LAB = {
     plan: "pilot: 加法 scratchpad 任务,teacher pythia-160m,students 14m/70m,GT-SFT vs SeqKD vs GKD,2 seeds → 之后升 410m teacher 拉出 3 档 gap,画 gap-增益曲线,再做缓解实验。"
   },
   pending: [
-    "[连续第二晚,最紧急] 请让 Mac 整晚不睡:系统设置 → 显示器与电池 → 电源适配器 → 防止自动进入睡眠;或睡前跑 caffeinate -is。昨晚你重启了 runner(job 确实在 00:40 CT 启动),但 Mac 中途又睡了,4.3h 的 job 没跑完。这是现在唯一的 blocker。",
-    "选题确认(carry over):OPD capacity-gap 机制研究(mini-proposal 见 program.md),同意投入 2-3 晚吗?不回复默认继续。备选:post-training scaling 微缩复现 / TRACE 玩具验证。",
-    "410m teacher 内存(carry over):下一步升 pythia-410m,fp32+AdamW 需 ~6.5GB(空闲 6.9GB 吃紧)。默认改用 Adafactor(~3.5GB);倾向 LoRA 或留在 160m 请留言。"
+    "[连续第三晚,最紧急] runner 已 >25 小时无心跳(最后一跳 07-23 00:40 CT):请重新运行 ~/Documents/ai-research-lab 里的 start.command。好消息:所有排队 job 的 run.sh 已加 caffeinate 防睡眠包裹,你只需启动 runner,不用改电源设置——job 执行期间 Mac 不会睡(但合盖仍会睡,请插电开盖)。",
+    "撞车排查帮个忙:沙盒打不开 OpenReview,请在浏览器开 https://openreview.net/forum?id=TteFp6TLUA(《Rethinking the Capacity Gap in On-Policy Distillation for LLMs》),把摘要贴到 feedback.md。若它已做受控 gap sweep + 预测指标,课题需要转向。",
+    "410m teacher(carry over,不急):计划用 Adafactor(~3.5GB)微调 pythia-410m 拉大 gap 轴;无异议默认执行。"
   ],
   log: [
+    { date: "2026-07-24", mode: "推进模式 · 设备离线",
+      did: "runner 心跳停在 07-23 00:40 CT(>25h 无活动),opdgap-a/b 无任何结果 → 设备离线,今晚未跑实验(连续第三晚)。云端完成三件事:① 投递抗睡眠紧凑版 opdgap-v2(单 job 2.5h 全流程:teacher 1ep/10k → GT-SFT+SeqKD 14m/70m×2 seeds → GKD 300 步,run.sh 用 caffeinate -ims 包裹,job 执行期间 Mac 不会睡;同样加到排队的 b 和 staging 的 c;tiny 模型冒烟通过全部代码路径);② 撞车排查:细读 arXiv:2603.25562 (Revisiting OPD),确认其为 7B 同级 pairs、无 gap 变化,不撞车,其失效机制正是我们 teacher-NLL 要量化的对象;OpenReview TteFp6TLUA 沙盒读不到、无 arXiv 镜像,需用户人工确认;③ 起草 workshop paper 骨架 staging/paper/draft.md(abstract/intro/related work 六篇差异划清/setup/结果占位表)。",
+      results: "无实验数字(连续第三晚,设备离线)。job 队列:a(中断待续)→ b(caffeinate 已加)→ v2(caffeinate,2.5h 保底出全套数字)。撞车排查:2603.25562 确认不冲突。",
+      conclusion: "blocker 升级:不只是中途睡,runner 已 >25h 完全无活动,需要用户重启 start.command。caffeinate 落地后,runner 只要启动、job 就能跑完;论文骨架就位,课题进入'只等数字'状态。",
+      next: "明晚收 a/b/v2 结果并用 analyze.py 分析(teacher ≥90%?GKD−SeqKD > 2× seed sd?);成活则投 opdgap-c(seed 2)并升 410m teacher;若 TteFp6TLUA 摘要显示撞车则讨论课题转向。" },
     { date: "2026-07-23", mode: "推进模式",
       did: "尝试收 opdgap-a/b 结果:runner 于 00:40 CT 重启并启动 opdgap-a(mps=true、空闲内存 6.9GB),但到 05:35 CT(超预算 0.6h)仍无 finish commit 与结果,判定 Mac 中途再次入睡。期间准备好第 3 seed 的补充 job opdgap-c(exp.py 参数化 --seeds/--teacher-from,复用 a 的 teacher checkpoint,已通过语法与逻辑测试)与结果分析脚本 analyze.py,存入仓库 staging/(未入队,待 pipeline 确认成活)。",
       results: "无实验数字(连续第二晚)。job 队列完好:opdgap-a 中断待续(Mac 唤醒后进程通常会继续跑完,白天可能出结果),opdgap-b 排队中,opdgap-c 在 staging。runner 环境健康:torch 2.13.0 / MPS 可用 / 18 核。",
