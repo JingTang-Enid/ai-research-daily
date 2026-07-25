@@ -86,15 +86,20 @@ const LAB = {
     name: "OPD-Gap: on-policy 蒸馏在不同 teacher-student capacity gap 下何时失效?",
     status: "active",
     question: "固定任务与数据预算下,on-policy 蒸馏(reverse-KL GKD/OPD)相对 off-policy 蒸馏(SeqKD)的优势如何随 capacity gap 变化?teacher-NLL(student rollouts) 能否预测失效点?",
-    hypothesis: "H1: 小 gap 时 OPD ≥ SeqKD;H2: gap 增大时优势缩小甚至反转(Demystifying OPD 的 mismatch 病理),且 teacher-NLL 可提前预示;H3: on/off-policy 混合或退火可在大 gap 下恢复大部分损失。",
-    plan: "pilot: 加法 scratchpad 任务,teacher pythia-160m,students 14m/70m,GT-SFT vs SeqKD vs GKD,2 seeds → 之后升 410m teacher 拉出 3 档 gap,画 gap-增益曲线,再做缓解实验。"
+    hypothesis: "更新(07-25,待确认): H2 强化版已获 toy 证据——无锚定纯 on-policy RKL 在所有 gap 上崩溃(低于自身 warmup 起点),严重度随 gap 单调分级;H3 升级为主轴——SFT 锚定(λ-混合)恢复崩溃,'恢复所需最小锚定量随 gap 增大?'拟作论文主图;H1(小 gap 时 OPD 优势)降级为附属问题。",
+    plan: "双轨: ① 云端 CPU 轨(已跑通,~23 min/全 sweep):from-scratch 字符级 tiny transformer,teacher 806k 参数,students d16/32/64/128(gap 99×/28×/7.6×/2.0×),共享 warmup + 等量 continuation 的配对协议;下一步补 seed、noisier-teacher、λ-混合 sweep。② Mac pythia 轨:队列 a→b→v2 等 runner 重启,验证 toy 结论在预训练模型上是否成立。"
   },
   pending: [
-    "[连续第三晚,最紧急] runner 已 >25 小时无心跳(最后一跳 07-23 00:40 CT):请重新运行 ~/Documents/ai-research-lab 里的 start.command。好消息:所有排队 job 的 run.sh 已加 caffeinate 防睡眠包裹,你只需启动 runner,不用改电源设置——job 执行期间 Mac 不会睡(但合盖仍会睡,请插电开盖)。",
-    "撞车排查帮个忙:沙盒打不开 OpenReview,请在浏览器开 https://openreview.net/forum?id=TteFp6TLUA(《Rethinking the Capacity Gap in On-Policy Distillation for LLMs》),把摘要贴到 feedback.md。若它已做受控 gap sweep + 预测指标,课题需要转向。",
-    "410m teacher(carry over,不急):计划用 Adafactor(~3.5GB)微调 pythia-410m 拉大 gap 轴;无异议默认执行。"
+    "[carry over 第四晚] runner 仍未启动(心跳停在 07-23 00:40 CT,已 >2 天):请重新运行 ~/Documents/ai-research-lab 的 start.command(排队 job 已带 caffeinate 防睡眠,启动后插电开盖即可)。云端 pilot 已出第一批数字,但 pythia 尺度的验证仍需要你的 Mac。",
+    "课题主轴微调确认:pilot 显示现象比预想更尖锐——'无锚定 on-policy 蒸馏的崩溃随 capacity gap 分级,SFT 锚定量是解药'。建议论文主图改为 gap × λ-混合 二维 sweep,H1 降级为附属问题。同意吗?不同意请在 feedback.md 留言。",
+    "[carry over] OpenReview TteFp6TLUA 摘要:仍请帮忙贴一下(https://openreview.net/forum?id=TteFp6TLUA);课题重心转向'崩溃+锚定'后撞车风险已下降,但确认最好。"
   ],
   log: [
+    { date: "2026-07-25", mode: "推进模式 · 设备离线 → 云端 CPU pilot 出首批数字",
+      did: "runner 连续第四晚离线(心跳仍停 07-23 00:40 CT),不再干等:把整个 pilot 缩尺到云端沙盒 2 核 CPU 上——同任务(加法+scratchpad)、同方法(GT-SFT/SeqKD/纯 on-policy reverse-KL GKD)、同诊断(teacher-NLL on rollouts),模型换成 from-scratch 字符级 tiny transformer。teacher d128×4L(806k 参数)1600 步;students d16/32/64/128(gap 99×/28×/7.6×/2.0×),每个 (seed,size) 共享 500 步 GT warmup 后各方法严格等量 600 步 continuation(配对比较),2 seeds,~23 分钟全 sweep。另做消融(d64:GKD lr 3e-4/1e-4、RKL/SFT 交替混合)区分'超参问题 vs 目标本身问题'。代码+日志+图入库 cloud/2026-07-25-cpu-pilot/(commit 377c538),draft.md 新增第 6 节。",
+      results: "teacher 98.5%(达标),SeqKD 数据 99.2% 正确。exact-match(n=2 seeds):gap 2×: GT .933±.004 / SeqKD .930±.007 / GKD .495±.011;gap 7.6×: .788 / .775 / .184;gap 28×: .312±.438(双峰)/ .320±.449 / .003;gap 99×: 全 0(地板)。GKD 相对 SeqKD 崩溃随 gap 分级:.53→.24→.01。消融(d64,warmup 0.593):纯 GKD lr 1e-4 仍只 0.418,RKL/SFT 混合恢复 0.580。tNLL 诊断:GKD 学生在每个 gap 上都以更高 teacher-NLL 结束(d64: 1.37 vs SFT 0.94)。",
+      conclusion: "① 纯 on-policy RKL 无锚定时在所有 gap 上低于自身起点,崩溃度随 gap 单调加深——H2 现象出现但更极端;② lr 降 10× 救不了、50% SFT 锚定立即恢复 → 崩溃是目标本身的病理;③ GT≈SeqKD 处处无差异(teacher 太准),off-policy 轴需 noisier teacher 才可测;④ 对 Mac 实验的含义:下一批 job 应加 λ-混合臂。局限:toy 尺度不保证迁移到 pythia,d32 双峰需补 seed。",
+      next: "云端补 seed 2 + noisier-teacher 变体;λ-混合 sweep(λ×gap 二维,若'最小锚定量随 gap 增大'成立即论文主图);runner 恢复后收 a/b/v2 与 toy 对照;用户确认主轴后重写 draft.md abstract/intro。" },
     { date: "2026-07-24", mode: "推进模式 · 设备离线",
       did: "runner 心跳停在 07-23 00:40 CT(>25h 无活动),opdgap-a/b 无任何结果 → 设备离线,今晚未跑实验(连续第三晚)。云端完成三件事:① 投递抗睡眠紧凑版 opdgap-v2(单 job 2.5h 全流程:teacher 1ep/10k → GT-SFT+SeqKD 14m/70m×2 seeds → GKD 300 步,run.sh 用 caffeinate -ims 包裹,job 执行期间 Mac 不会睡;同样加到排队的 b 和 staging 的 c;tiny 模型冒烟通过全部代码路径);② 撞车排查:细读 arXiv:2603.25562 (Revisiting OPD),确认其为 7B 同级 pairs、无 gap 变化,不撞车,其失效机制正是我们 teacher-NLL 要量化的对象;OpenReview TteFp6TLUA 沙盒读不到、无 arXiv 镜像,需用户人工确认;③ 起草 workshop paper 骨架 staging/paper/draft.md(abstract/intro/related work 六篇差异划清/setup/结果占位表)。",
       results: "无实验数字(连续第三晚,设备离线)。job 队列:a(中断待续)→ b(caffeinate 已加)→ v2(caffeinate,2.5h 保底出全套数字)。撞车排查:2603.25562 确认不冲突。",
