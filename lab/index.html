@@ -86,15 +86,20 @@ const LAB = {
     name: "OPD-Gap: on-policy 蒸馏在不同 teacher-student capacity gap 下何时失效?",
     status: "active",
     question: "固定任务与数据预算下,on-policy 蒸馏(reverse-KL GKD/OPD)相对 off-policy 蒸馏(SeqKD)的优势如何随 capacity gap 变化?teacher-NLL(student rollouts) 能否预测失效点?",
-    hypothesis: "更新(07-25,待确认): H2 强化版已获 toy 证据——无锚定纯 on-policy RKL 在所有 gap 上崩溃(低于自身 warmup 起点),严重度随 gap 单调分级;H3 升级为主轴——SFT 锚定(λ-混合)恢复崩溃,'恢复所需最小锚定量随 gap 增大?'拟作论文主图;H1(小 gap 时 OPD 优势)降级为附属问题。",
-    plan: "双轨: ① 云端 CPU 轨(已跑通,~23 min/全 sweep):from-scratch 字符级 tiny transformer,teacher 806k 参数,students d16/32/64/128(gap 99×/28×/7.6×/2.0×),共享 warmup + 等量 continuation 的配对协议;下一步补 seed、noisier-teacher、λ-混合 sweep。② Mac pythia 轨:队列 a→b→v2 等 runner 重启,验证 toy 结论在预训练模型上是否成立。"
+    hypothesis: "更新(07-26): H1 在 toy 中证伪(干净与噪声 teacher 下 on-policy 分量均无正面 regime);H2 已确认(无锚定崩溃随 gap 分级,tNLL 诊断跨全网格成立);H3 修正版——锚定单调有效但恢复曲线形状随 gap 非单调:7.6× 凹(易救)、2.0× 线性、28× 凸(近乎无救);H4(新,pythia 轨关键问题):正面 on-policy regime 需要什么条件(预训练先验/长 horizon/forward-KL 等实例化)?",
+    plan: "双轨: ① 云端 CPU 轨(主力):λ×gap 二维 sweep 与 noisy-teacher 变体已完成,端点跨脚本精确复现;下一步 forward-KL/JSD/top-K 实例化 sweep、loss 级混合对照、28× 补 seeds。② Mac pythia 轨(重要性升级):现在承担 H4——论文成败的关键实验;队列 a→b→v2 等 runner 重启。"
   },
   pending: [
-    "[carry over 第四晚] runner 仍未启动(心跳停在 07-23 00:40 CT,已 >2 天):请重新运行 ~/Documents/ai-research-lab 的 start.command(排队 job 已带 caffeinate 防睡眠,启动后插电开盖即可)。云端 pilot 已出第一批数字,但 pythia 尺度的验证仍需要你的 Mac。",
-    "课题主轴微调确认:pilot 显示现象比预想更尖锐——'无锚定 on-policy 蒸馏的崩溃随 capacity gap 分级,SFT 锚定量是解药'。建议论文主图改为 gap × λ-混合 二维 sweep,H1 降级为附属问题。同意吗?不同意请在 feedback.md 留言。",
-    "[carry over] OpenReview TteFp6TLUA 摘要:仍请帮忙贴一下(https://openreview.net/forum?id=TteFp6TLUA);课题重心转向'崩溃+锚定'后撞车风险已下降,但确认最好。"
+    "[第五晚 carry over,最紧急] runner 仍未启动(心跳停 07-23 00:40 CT):请重新运行 ~/Documents/ai-research-lab 的 start.command(排队 job 已带 caffeinate,启动后插电开盖即可)。pythia 轨已从'验证'升级为论文成败的关键实验,比之前更需要 Mac。",
+    "叙事方向选择:toy 结果显示 on-policy RKL 纯有害、锚定一致最优。(a) '无锚定崩溃随 gap 分级 + 可救难度在容量悬崖激增'——数据已支撑,风险是评审问'为何 LLM 上 OPD 有用而 toy 里没用';(b) 补 pythia/实例化对照,升级为 'on-policy 蒸馏增益的必要条件'研究——更有野心但依赖 Mac。你倾向哪个?",
+    "[carry over] OpenReview TteFp6TLUA 摘要:仍请帮忙贴一下(https://openreview.net/forum?id=TteFp6TLUA);若它也是'崩溃+锚定'叙事,选项 (b) 的差异化更安全。"
   ],
   log: [
+    { date: "2026-07-26", mode: "推进模式 · 设备离线第五晚 → 云端完成 λ×gap 主图实验 + noisy-teacher 变体",
+      did: "runner 连续第五晚离线(心跳仍停 07-23 00:40 CT),今晚全部云端完成。实验 A(36.4 min):λ-锚定 × capacity-gap 二维 sweep——协议与 07-25 pilot 完全一致,新增唯一轴 α∈{0,.25,.5,.75,1}(α 比例步做 SeqKD 数据 SFT 锚定,其余步做 on-policy reverse-KL;纯蒸馏、不需 GT),4 gap × 2-3 seeds × 5 α = 45 runs;端点精确复现 pilot(α=0→.495=pilot GKD,α=1→.930=pilot SeqKD)。实验 B(16.9 min):noisy-teacher 变体——teacher 只训 700 步(73.8%),SeqKD 数据 77.8% 正确,方法 gt/seqkd/gkd/mix50 × d128/d64 × 2 seeds。代码+日志+主图 lambda_gap_figure.png 入库,draft.md 新增第 7 节。",
+      results: "A(λ×gap,mean±sd):gap 2×: α=0 .495 → α=.5 .675 → α=1 .930;gap 7.6×: .184 → .704 → .787;gap 28×: .002 → .060 → .268±.329;gap 99× 全 0(地板)。缺口恢复率 r(.5)=.41(2×)/.86(7.6×)/.22(28×)——恢复曲线 7.6× 凹、2.0× 线性、28× 凸。tNLL 随 α 单调降于每个 gap(2×: .96→.82;28×: 3.10→2.12)。B(noisy teacher):GT>SeqKD 轴打开(.933 vs .780 @2×;.788 vs .736 @7.6×);SeqKD 学生(.78)略超 noisy teacher 本身(.74);mix50 仍不敌纯 SeqKD(.595 vs .780 @2×;.620 vs .736 @7.6×);GKD 照样崩溃(.456/.231)。",
+      conclusion: "① α=1 在所有 gap、干净与噪声 teacher 下一致最优——toy 中 on-policy RKL 分量找不到任何有益 regime,'锚定是解药'确认且更强:锚定是在稀释一个纯有害分量;② H3 需修正:'最小锚定量随 gap 增大'只在 7.6×→28× 成立,2.0×→7.6× 反向——诚实表述是'崩溃深度随 gap 分级,可救难度在容量悬崖附近激增';③ tNLL 机制表述更尖锐:直接优化 RKL 反而使该目标最终值更差,SFT 锚定反而更低;④ 与 LLM 尺度 OPD 正面报告的张力把 pythia 轨升级为关键实验(H4:正面 regime 的必要条件)。局限:单任务、字符级、from-scratch;28× 高方差(±.33);未试 loss 级混合。",
+      next: "runner 恢复则收 a/b/v2 + 投 pythia λ-混合/forward-KL/JSD 臂 job;离线则云端做 forward-KL/JSD/top-K 实例化 sweep(判定崩溃是否 RKL 特有)+ loss 级混合对照 + 28× 补 seeds;用户选定叙事 (a)/(b) 后重写 draft.md abstract/intro。" },
     { date: "2026-07-25", mode: "推进模式 · 设备离线 → 云端 CPU pilot 出首批数字",
       did: "runner 连续第四晚离线(心跳仍停 07-23 00:40 CT),不再干等:把整个 pilot 缩尺到云端沙盒 2 核 CPU 上——同任务(加法+scratchpad)、同方法(GT-SFT/SeqKD/纯 on-policy reverse-KL GKD)、同诊断(teacher-NLL on rollouts),模型换成 from-scratch 字符级 tiny transformer。teacher d128×4L(806k 参数)1600 步;students d16/32/64/128(gap 99×/28×/7.6×/2.0×),每个 (seed,size) 共享 500 步 GT warmup 后各方法严格等量 600 步 continuation(配对比较),2 seeds,~23 分钟全 sweep。另做消融(d64:GKD lr 3e-4/1e-4、RKL/SFT 交替混合)区分'超参问题 vs 目标本身问题'。代码+日志+图入库 cloud/2026-07-25-cpu-pilot/(commit 377c538),draft.md 新增第 6 节。",
       results: "teacher 98.5%(达标),SeqKD 数据 99.2% 正确。exact-match(n=2 seeds):gap 2×: GT .933±.004 / SeqKD .930±.007 / GKD .495±.011;gap 7.6×: .788 / .775 / .184;gap 28×: .312±.438(双峰)/ .320±.449 / .003;gap 99×: 全 0(地板)。GKD 相对 SeqKD 崩溃随 gap 分级:.53→.24→.01。消融(d64,warmup 0.593):纯 GKD lr 1e-4 仍只 0.418,RKL/SFT 混合恢复 0.580。tNLL 诊断:GKD 学生在每个 gap 上都以更高 teacher-NLL 结束(d64: 1.37 vs SFT 0.94)。",
