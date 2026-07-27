@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>实验室 · AI Research 日报</title>
+<title>Lab · AI Research Daily</title>
 <style>
   :root {
     color-scheme: light;
@@ -59,101 +59,101 @@
 <body>
 <nav>
   <span class="brand">autoResearch_AI</span>
-  <a href="../">今日日报</a>
-  <a href="../nightly/">论文扫描</a>
-  <a href="./" class="active">实验室</a>
-  <a href="../archive/">历史存档</a>
+  <a href="../">Daily Report</a>
+  <a href="../nightly/">Paper Scan</a>
+  <a href="./" class="active">Lab</a>
+  <a href="../archive/">Archive</a>
 </nav>
-<h1>实验室</h1>
-<div class="sub">agent 每晚 2:00(美中时间)自主选题、跑实验、记录结果;目标是 AI 顶会 workshop paper 级别的初步验证。白天留 comment,当晚执行。</div>
+<h1>Lab</h1>
+<div class="sub">Every night at 2:00 AM (US Central) the agent autonomously picks and advances a research project, runs experiments, and logs results — aiming for workshop-paper-level pilot evidence at top AI venues. Leave comments during the day; they are executed the same night.</div>
 
 <div id="pendingbox"></div>
 
 <div class="panel">
-  <h2>当前课题<span class="status" id="pstatus"></span></h2>
+  <h2>Current project<span class="status" id="pstatus"></span></h2>
   <div id="project"></div>
 </div>
 
 <div class="panel">
-  <h2>实验日志(最近 14 晚)</h2>
+  <h2>Experiment log (last 14 nights)</h2>
   <div id="logs"></div>
 </div>
 
 <script>
-// ===== 每晚由实验夜班 agent 更新以下数据块 =====
+// ===== Updated nightly by the experiment night-shift agent. ALL content in English. =====
 const LAB = {
   project: {
-    name: "OPD-Gap: on-policy 蒸馏在不同 teacher-student capacity gap 下何时失效?",
+    name: "OPD-Gap: when does on-policy distillation fail across teacher-student capacity gaps?",
     status: "active",
-    question: "固定任务与数据预算下,on-policy 蒸馏(reverse-KL GKD/OPD)相对 off-policy 蒸馏(SeqKD)的优势如何随 capacity gap 变化?teacher-NLL(student rollouts) 能否预测失效点?",
-    hypothesis: "更新(07-26): H1 在 toy 中证伪(干净与噪声 teacher 下 on-policy 分量均无正面 regime);H2 已确认(无锚定崩溃随 gap 分级,tNLL 诊断跨全网格成立);H3 修正版——锚定单调有效但恢复曲线形状随 gap 非单调:7.6× 凹(易救)、2.0× 线性、28× 凸(近乎无救);H4(新,pythia 轨关键问题):正面 on-policy regime 需要什么条件(预训练先验/长 horizon/forward-KL 等实例化)?",
-    plan: "双轨: ① 云端 CPU 轨(主力):λ×gap 二维 sweep 与 noisy-teacher 变体已完成,端点跨脚本精确复现;下一步 forward-KL/JSD/top-K 实例化 sweep、loss 级混合对照、28× 补 seeds。② Mac pythia 轨(重要性升级):现在承担 H4——论文成败的关键实验;队列 a→b→v2 等 runner 重启。"
+    question: "At fixed task and data budget, how does the advantage of on-policy distillation (reverse-KL GKD/OPD) over off-policy distillation (SeqKD) vary with capacity gap? Can teacher-NLL(student rollouts) predict the failure point?",
+    hypothesis: "Updated (07-26): H1 falsified in the toy setting (no beneficial regime for the on-policy component under clean or noisy teachers); H2 confirmed (un-anchored collapse grades with gap, tNLL diagnostic holds across the full grid); H3 revised — anchoring helps monotonically but the recovery-curve shape is non-monotonic in gap: concave at 7.6× (easy to rescue), linear at 2.0×, convex at 28× (nearly unrescuable); H4 (new, the key question for the pythia track): what conditions are required for a beneficial on-policy regime (pretrained prior / long horizon / forward-KL instantiation, etc.)?",
+    plan: "Two tracks: ① Cloud CPU track (workhorse): λ×gap 2-D sweep and noisy-teacher variant done, endpoints reproduce exactly across scripts; next: forward-KL/JSD/top-K instantiation sweep, loss-level mixing control, extra seeds at 28×. ② Mac pythia track (importance upgraded): now carries H4 — the make-or-break experiment for the paper; job queue a→b→v2 awaiting runner restart."
   },
   pending: [
-    "[第五晚 carry over,最紧急] runner 仍未启动(心跳停 07-23 00:40 CT):请重新运行 ~/Documents/ai-research-lab 的 start.command(排队 job 已带 caffeinate,启动后插电开盖即可)。pythia 轨已从'验证'升级为论文成败的关键实验,比之前更需要 Mac。",
-    "叙事方向选择:toy 结果显示 on-policy RKL 纯有害、锚定一致最优。(a) '无锚定崩溃随 gap 分级 + 可救难度在容量悬崖激增'——数据已支撑,风险是评审问'为何 LLM 上 OPD 有用而 toy 里没用';(b) 补 pythia/实例化对照,升级为 'on-policy 蒸馏增益的必要条件'研究——更有野心但依赖 Mac。你倾向哪个?",
-    "[carry over] OpenReview TteFp6TLUA 摘要:仍请帮忙贴一下(https://openreview.net/forum?id=TteFp6TLUA);若它也是'崩溃+锚定'叙事,选项 (b) 的差异化更安全。"
+    "[Carried over 5 nights, most urgent] The runner is still not running (heartbeat stopped 07-23 00:40 CT): please re-run start.command in ~/Documents/ai-research-lab (queued jobs now wrap themselves in caffeinate; after starting, plugged in + lid open is enough). The pythia track has been upgraded from \"validation\" to the paper's make-or-break experiment — the Mac is needed more than ever.",
+    "Narrative choice: toy results show on-policy RKL is purely harmful and anchoring is consistently optimal. (a) \"Un-anchored collapse grades with gap + rescue difficulty spikes at the capacity cliff\" — already supported by the data; risk is reviewers asking why OPD works at LLM scale but not in the toy. (b) Add pythia/instantiation controls and upgrade to a \"necessary conditions for on-policy distillation gains\" study — more ambitious but depends on the Mac. Which do you prefer?",
+    "[Carried over] OpenReview TteFp6TLUA abstract: still need you to paste it (https://openreview.net/forum?id=TteFp6TLUA); if it is also a \"collapse + anchoring\" story, option (b) is the safer differentiation."
   ],
   log: [
-    { date: "2026-07-26", mode: "推进模式 · 设备离线第五晚 → 云端完成 λ×gap 主图实验 + noisy-teacher 变体",
-      did: "runner 连续第五晚离线(心跳仍停 07-23 00:40 CT),今晚全部云端完成。实验 A(36.4 min):λ-锚定 × capacity-gap 二维 sweep——协议与 07-25 pilot 完全一致,新增唯一轴 α∈{0,.25,.5,.75,1}(α 比例步做 SeqKD 数据 SFT 锚定,其余步做 on-policy reverse-KL;纯蒸馏、不需 GT),4 gap × 2-3 seeds × 5 α = 45 runs;端点精确复现 pilot(α=0→.495=pilot GKD,α=1→.930=pilot SeqKD)。实验 B(16.9 min):noisy-teacher 变体——teacher 只训 700 步(73.8%),SeqKD 数据 77.8% 正确,方法 gt/seqkd/gkd/mix50 × d128/d64 × 2 seeds。代码+日志+主图 lambda_gap_figure.png 入库,draft.md 新增第 7 节。",
-      results: "A(λ×gap,mean±sd):gap 2×: α=0 .495 → α=.5 .675 → α=1 .930;gap 7.6×: .184 → .704 → .787;gap 28×: .002 → .060 → .268±.329;gap 99× 全 0(地板)。缺口恢复率 r(.5)=.41(2×)/.86(7.6×)/.22(28×)——恢复曲线 7.6× 凹、2.0× 线性、28× 凸。tNLL 随 α 单调降于每个 gap(2×: .96→.82;28×: 3.10→2.12)。B(noisy teacher):GT>SeqKD 轴打开(.933 vs .780 @2×;.788 vs .736 @7.6×);SeqKD 学生(.78)略超 noisy teacher 本身(.74);mix50 仍不敌纯 SeqKD(.595 vs .780 @2×;.620 vs .736 @7.6×);GKD 照样崩溃(.456/.231)。",
-      conclusion: "① α=1 在所有 gap、干净与噪声 teacher 下一致最优——toy 中 on-policy RKL 分量找不到任何有益 regime,'锚定是解药'确认且更强:锚定是在稀释一个纯有害分量;② H3 需修正:'最小锚定量随 gap 增大'只在 7.6×→28× 成立,2.0×→7.6× 反向——诚实表述是'崩溃深度随 gap 分级,可救难度在容量悬崖附近激增';③ tNLL 机制表述更尖锐:直接优化 RKL 反而使该目标最终值更差,SFT 锚定反而更低;④ 与 LLM 尺度 OPD 正面报告的张力把 pythia 轨升级为关键实验(H4:正面 regime 的必要条件)。局限:单任务、字符级、from-scratch;28× 高方差(±.33);未试 loss 级混合。",
-      next: "runner 恢复则收 a/b/v2 + 投 pythia λ-混合/forward-KL/JSD 臂 job;离线则云端做 forward-KL/JSD/top-K 实例化 sweep(判定崩溃是否 RKL 特有)+ loss 级混合对照 + 28× 补 seeds;用户选定叙事 (a)/(b) 后重写 draft.md abstract/intro。" },
-    { date: "2026-07-25", mode: "推进模式 · 设备离线 → 云端 CPU pilot 出首批数字",
-      did: "runner 连续第四晚离线(心跳仍停 07-23 00:40 CT),不再干等:把整个 pilot 缩尺到云端沙盒 2 核 CPU 上——同任务(加法+scratchpad)、同方法(GT-SFT/SeqKD/纯 on-policy reverse-KL GKD)、同诊断(teacher-NLL on rollouts),模型换成 from-scratch 字符级 tiny transformer。teacher d128×4L(806k 参数)1600 步;students d16/32/64/128(gap 99×/28×/7.6×/2.0×),每个 (seed,size) 共享 500 步 GT warmup 后各方法严格等量 600 步 continuation(配对比较),2 seeds,~23 分钟全 sweep。另做消融(d64:GKD lr 3e-4/1e-4、RKL/SFT 交替混合)区分'超参问题 vs 目标本身问题'。代码+日志+图入库 cloud/2026-07-25-cpu-pilot/(commit 377c538),draft.md 新增第 6 节。",
-      results: "teacher 98.5%(达标),SeqKD 数据 99.2% 正确。exact-match(n=2 seeds):gap 2×: GT .933±.004 / SeqKD .930±.007 / GKD .495±.011;gap 7.6×: .788 / .775 / .184;gap 28×: .312±.438(双峰)/ .320±.449 / .003;gap 99×: 全 0(地板)。GKD 相对 SeqKD 崩溃随 gap 分级:.53→.24→.01。消融(d64,warmup 0.593):纯 GKD lr 1e-4 仍只 0.418,RKL/SFT 混合恢复 0.580。tNLL 诊断:GKD 学生在每个 gap 上都以更高 teacher-NLL 结束(d64: 1.37 vs SFT 0.94)。",
-      conclusion: "① 纯 on-policy RKL 无锚定时在所有 gap 上低于自身起点,崩溃度随 gap 单调加深——H2 现象出现但更极端;② lr 降 10× 救不了、50% SFT 锚定立即恢复 → 崩溃是目标本身的病理;③ GT≈SeqKD 处处无差异(teacher 太准),off-policy 轴需 noisier teacher 才可测;④ 对 Mac 实验的含义:下一批 job 应加 λ-混合臂。局限:toy 尺度不保证迁移到 pythia,d32 双峰需补 seed。",
-      next: "云端补 seed 2 + noisier-teacher 变体;λ-混合 sweep(λ×gap 二维,若'最小锚定量随 gap 增大'成立即论文主图);runner 恢复后收 a/b/v2 与 toy 对照;用户确认主轴后重写 draft.md abstract/intro。" },
-    { date: "2026-07-24", mode: "推进模式 · 设备离线",
-      did: "runner 心跳停在 07-23 00:40 CT(>25h 无活动),opdgap-a/b 无任何结果 → 设备离线,今晚未跑实验(连续第三晚)。云端完成三件事:① 投递抗睡眠紧凑版 opdgap-v2(单 job 2.5h 全流程:teacher 1ep/10k → GT-SFT+SeqKD 14m/70m×2 seeds → GKD 300 步,run.sh 用 caffeinate -ims 包裹,job 执行期间 Mac 不会睡;同样加到排队的 b 和 staging 的 c;tiny 模型冒烟通过全部代码路径);② 撞车排查:细读 arXiv:2603.25562 (Revisiting OPD),确认其为 7B 同级 pairs、无 gap 变化,不撞车,其失效机制正是我们 teacher-NLL 要量化的对象;OpenReview TteFp6TLUA 沙盒读不到、无 arXiv 镜像,需用户人工确认;③ 起草 workshop paper 骨架 staging/paper/draft.md(abstract/intro/related work 六篇差异划清/setup/结果占位表)。",
-      results: "无实验数字(连续第三晚,设备离线)。job 队列:a(中断待续)→ b(caffeinate 已加)→ v2(caffeinate,2.5h 保底出全套数字)。撞车排查:2603.25562 确认不冲突。",
-      conclusion: "blocker 升级:不只是中途睡,runner 已 >25h 完全无活动,需要用户重启 start.command。caffeinate 落地后,runner 只要启动、job 就能跑完;论文骨架就位,课题进入'只等数字'状态。",
-      next: "明晚收 a/b/v2 结果并用 analyze.py 分析(teacher ≥90%?GKD−SeqKD > 2× seed sd?);成活则投 opdgap-c(seed 2)并升 410m teacher;若 TteFp6TLUA 摘要显示撞车则讨论课题转向。" },
-    { date: "2026-07-23", mode: "推进模式",
-      did: "尝试收 opdgap-a/b 结果:runner 于 00:40 CT 重启并启动 opdgap-a(mps=true、空闲内存 6.9GB),但到 05:35 CT(超预算 0.6h)仍无 finish commit 与结果,判定 Mac 中途再次入睡。期间准备好第 3 seed 的补充 job opdgap-c(exp.py 参数化 --seeds/--teacher-from,复用 a 的 teacher checkpoint,已通过语法与逻辑测试)与结果分析脚本 analyze.py,存入仓库 staging/(未入队,待 pipeline 确认成活)。",
-      results: "无实验数字(连续第二晚)。job 队列完好:opdgap-a 中断待续(Mac 唤醒后进程通常会继续跑完,白天可能出结果),opdgap-b 排队中,opdgap-c 在 staging。runner 环境健康:torch 2.13.0 / MPS 可用 / 18 核。",
-      conclusion: "瓶颈 100% 在设备可用性:两晚均因 Mac 睡眠丢失实验窗口。Mac 整晚清醒的话,现有 pipeline 一晚可出 teacher + 8 个 off-policy runs。",
-      next: "明晚收 a/b 结果并用 analyze.py 分析;成活则投 opdgap-c(seed 2),随后升 410m teacher 拉 3 档 gap;若 a 白天仍无结果则投缩小版 -v2(2.5h 出全套数字)。" },
-    { date: "2026-07-22", mode: "开题模式",
-      did: "评估 3 个候选(OPD capacity-gap / scaling 微缩复现 / TRACE 玩具验证),选定 OPD-Gap 并写 mini-proposal;实现完整 pilot 代码(teacher 训练、SeqKD、reverse-KL GKD、mismatch 诊断)并在云端冒烟验证;投递 2 个 job:opdgap-a(teacher pythia-160m + 14m/70m 的 GT-SFT/SeqKD 基线,2 seeds)、opdgap-b(14m/70m 的 on-policy GKD 500 步,2 seeds)。",
-      results: "无实验数字:runner 心跳 02:04 CT 后停止(此前每 10 分钟一跳,存活约 1.5h),疑似 Mac 睡眠;job 已入队,runner 恢复后自动执行。基础设施本身正常:昨晚 smoke-test 成功,MPS 可用(matmul 50×2048=0.68s)。任务规模:train 20000 / eval 500,预算守卫 4.3-4.5h/job,中间指标持续落盘。",
-      conclusion: "课题设计与代码就绪,当前唯一瓶颈是 Mac 夜间睡眠导致 runner 存活时间不足。",
-      next: "收 opdgap-a/b 结果,验证 teacher ≥90% 与 SeqKD vs GKD 差异;补第 3 seed;升 410m teacher 拉 gap 轴。" }
-  ]        // { date, mode, did, results, conclusion, next } — 新条目插入开头,保留 14 条
+    { date: "2026-07-26", mode: "Progress mode · device offline 5th night → completed λ×gap headline experiment + noisy-teacher variant in the cloud",
+      did: "Runner offline for the fifth straight night (heartbeat still stopped at 07-23 00:40 CT); everything done in the cloud tonight. Experiment A (36.4 min): λ-anchoring × capacity-gap 2-D sweep — protocol identical to the 07-25 pilot, single new axis α∈{0,.25,.5,.75,1} (an α fraction of steps do SFT anchoring on SeqKD data, the rest do on-policy reverse-KL; pure distillation, no GT needed), 4 gaps × 2-3 seeds × 5 α = 45 runs; endpoints reproduce the pilot exactly (α=0→.495=pilot GKD, α=1→.930=pilot SeqKD). Experiment B (16.9 min): noisy-teacher variant — teacher trained only 700 steps (73.8%), SeqKD data 77.8% correct; methods gt/seqkd/gkd/mix50 × d128/d64 × 2 seeds. Code + logs + headline figure lambda_gap_figure.png committed; draft.md gained section 7.",
+      results: "A (λ×gap, mean±sd): gap 2×: α=0 .495 → α=.5 .675 → α=1 .930; gap 7.6×: .184 → .704 → .787; gap 28×: .002 → .060 → .268±.329; gap 99×: all 0 (floor). Gap-recovery ratio r(.5)=.41 (2×) / .86 (7.6×) / .22 (28×) — recovery curve concave at 7.6×, linear at 2.0×, convex at 28×. tNLL decreases monotonically with α at every gap (2×: .96→.82; 28×: 3.10→2.12). B (noisy teacher): the GT>SeqKD axis opens up (.933 vs .780 @2×; .788 vs .736 @7.6×); SeqKD students (.78) slightly exceed the noisy teacher itself (.74); mix50 still loses to pure SeqKD (.595 vs .780 @2×; .620 vs .736 @7.6×); GKD collapses as before (.456/.231).",
+      conclusion: "① α=1 is consistently best at every gap, under clean and noisy teachers alike — the on-policy RKL component has no beneficial regime in the toy; \"anchoring is the antidote\" is confirmed and sharpened: anchoring works by diluting a purely harmful component. ② H3 needs revision: \"minimum anchoring grows with gap\" only holds from 7.6×→28×, and reverses from 2.0×→7.6×; the honest statement is \"collapse depth grades with gap, and rescue difficulty spikes near the capacity cliff\". ③ The tNLL mechanism statement is now sharper: directly optimizing RKL makes that very objective end up worse, while SFT anchoring ends lower. ④ The tension with positive LLM-scale OPD reports upgrades the pythia track to the critical experiment (H4: necessary conditions for a beneficial regime). Limitations: single task, char-level, from-scratch; high variance at 28× (±.33); loss-level mixing untried.",
+      next: "If the runner recovers: collect a/b/v2 + submit pythia λ-mixing / forward-KL / JSD arm jobs. If still offline: cloud forward-KL/JSD/top-K instantiation sweep (is the collapse RKL-specific?), loss-level mixing control, extra seeds at 28×. Rewrite draft.md abstract/intro once the user picks narrative (a)/(b)." },
+    { date: "2026-07-25", mode: "Progress mode · device offline → cloud CPU pilot produced first numbers",
+      did: "Runner offline for the fourth straight night (heartbeat still stopped 07-23 00:40 CT); stopped waiting: scaled the entire pilot down to the cloud sandbox's 2-core CPU — same task (addition + scratchpad), same methods (GT-SFT / SeqKD / pure on-policy reverse-KL GKD), same diagnostic (teacher-NLL on rollouts), model swapped for a from-scratch char-level tiny transformer. Teacher d128×4L (806k params) 1600 steps; students d16/32/64/128 (gaps 99×/28×/7.6×/2.0×); each (seed,size) shares a 500-step GT warmup, then each method gets exactly 600 continuation steps (paired comparison), 2 seeds, ~23 min full sweep. Ablation (d64: GKD lr 3e-4/1e-4, RKL/SFT alternating mix) to separate \"hyperparameter problem vs objective pathology\". Code + logs + figures committed to cloud/2026-07-25-cpu-pilot/ (commit 377c538); draft.md gained section 6.",
+      results: "Teacher 98.5% (target met), SeqKD data 99.2% correct. Exact-match (n=2 seeds): gap 2×: GT .933±.004 / SeqKD .930±.007 / GKD .495±.011; gap 7.6×: .788 / .775 / .184; gap 28×: .312±.438 (bimodal) / .320±.449 / .003; gap 99×: all 0 (floor). GKD's collapse relative to SeqKD grades with gap: .53→.24→.01. Ablation (d64, warmup 0.593): pure GKD at lr 1e-4 still only 0.418; RKL/SFT mixing recovers 0.580. tNLL diagnostic: GKD students end with higher teacher-NLL at every gap (d64: 1.37 vs SFT 0.94).",
+      conclusion: "① Pure on-policy RKL without anchoring ends below its own starting point at every gap, and collapse deepens monotonically with gap — the H2 phenomenon, but more extreme. ② A 10× lr cut doesn't save it while 50% SFT anchoring immediately recovers → the collapse is a pathology of the objective itself. ③ GT≈SeqKD everywhere (teacher too accurate) — the off-policy axis needs a noisier teacher to be measurable. ④ Implication for the Mac experiments: the next job batch should add λ-mixing arms. Limitations: toy scale doesn't guarantee transfer to pythia; the bimodal d32 needs more seeds.",
+      next: "Cloud: seed 2 + noisier-teacher variant; λ-mixing sweep (λ×gap 2-D — if \"minimum anchoring grows with gap\" holds, that's the paper's headline figure). When the runner recovers: collect a/b/v2 and the toy comparison. Rewrite draft.md abstract/intro once the user confirms the main axis." },
+    { date: "2026-07-24", mode: "Progress mode · device offline",
+      did: "Runner heartbeat stopped at 07-23 00:40 CT (>25h inactive); no results from opdgap-a/b → device offline, no experiments for the third straight night. Three things done in the cloud: ① Submitted sleep-proof compact job opdgap-v2 (single 2.5h end-to-end job: teacher 1ep/10k → GT-SFT + SeqKD 14m/70m × 2 seeds → GKD 300 steps; run.sh wrapped in caffeinate -ims so the Mac won't sleep during execution; same added to queued b and staged c; tiny-model smoke test passed all code paths). ② Collision check: read arXiv:2603.25562 (Revisiting OPD) closely — 7B same-size pairs, no gap variation, no collision; its failure mechanism is exactly what our teacher-NLL aims to quantify. OpenReview TteFp6TLUA unreadable from the sandbox, no arXiv mirror — needs the user to check manually. ③ Drafted the workshop-paper skeleton staging/paper/draft.md (abstract/intro/related-work differentiation against six papers/setup/results placeholder tables).",
+      results: "No experiment numbers (third straight night, device offline). Job queue: a (interrupted, resumable) → b (caffeinate added) → v2 (caffeinate, 2.5h guaranteed full set of numbers). Collision check: 2603.25562 confirmed non-conflicting.",
+      conclusion: "Blocker escalated: not just mid-run sleep — the runner has been fully inactive for >25h and needs the user to restart start.command. With caffeinate in place, jobs will complete as long as the runner starts; the paper skeleton is ready, so the project is now purely waiting on numbers.",
+      next: "Tomorrow night: collect a/b/v2 and analyze with analyze.py (teacher ≥90%? GKD−SeqKD > 2× seed sd?); if alive, submit opdgap-c (seed 2) and upgrade to a 410m teacher. If the TteFp6TLUA abstract shows a collision, discuss a pivot." },
+    { date: "2026-07-23", mode: "Progress mode",
+      did: "Tried to collect opdgap-a/b results: the runner restarted at 00:40 CT and started opdgap-a (mps=true, 6.9GB free memory), but by 05:35 CT (0.6h over budget) there was still no finish commit or results — concluded the Mac fell asleep again mid-run. Meanwhile prepared the third-seed follow-up job opdgap-c (exp.py parameterized with --seeds/--teacher-from, reusing a's teacher checkpoint; syntax and logic tested) and the results-analysis script analyze.py, stored in staging/ (not queued until the pipeline is confirmed alive).",
+      results: "No experiment numbers (second straight night). Job queue intact: opdgap-a interrupted-resumable (the process usually finishes after the Mac wakes, results may appear during the day), opdgap-b queued, opdgap-c staged. Runner environment healthy: torch 2.13.0 / MPS available / 18 cores.",
+      conclusion: "The bottleneck is 100% device availability: both nights' experiment windows were lost to Mac sleep. If the Mac stays awake all night, the current pipeline can produce a teacher + 8 off-policy runs in one night.",
+      next: "Collect a/b results tomorrow night and analyze; if alive, submit opdgap-c (seed 2), then upgrade to a 410m teacher for a third gap level; if a still has no results during the day, submit the shrunken -v2 (full numbers in 2.5h)." },
+    { date: "2026-07-22", mode: "Ideation mode",
+      did: "Evaluated 3 candidates (OPD capacity-gap / miniature scaling replication / TRACE toy validation), selected OPD-Gap and wrote the mini-proposal; implemented the full pilot code (teacher training, SeqKD, reverse-KL GKD, mismatch diagnostics) and smoke-tested it in the cloud; submitted 2 jobs: opdgap-a (teacher pythia-160m + GT-SFT/SeqKD baselines for 14m/70m, 2 seeds), opdgap-b (on-policy GKD 500 steps for 14m/70m, 2 seeds).",
+      results: "No experiment numbers: the runner heartbeat stopped after 02:04 CT (previously beating every 10 min, alive ~1.5h) — suspected Mac sleep; jobs are queued and will run automatically when the runner recovers. Infrastructure itself is fine: last night's smoke test passed, MPS available (matmul 50×2048 = 0.68s). Task scale: train 20000 / eval 500, budget guard 4.3-4.5h/job, intermediate metrics continuously flushed to disk.",
+      conclusion: "Project design and code are ready; the only bottleneck is the Mac sleeping at night, cutting the runner's lifetime short.",
+      next: "Collect opdgap-a/b results, verify teacher ≥90% and the SeqKD vs GKD difference; add a third seed; upgrade to a 410m teacher to extend the gap axis." }
+  ]        // { date, mode, did, results, conclusion, next } — prepend new entries, keep 14
 };
-// ===== 数据块结束 =====
+// ===== End of data block =====
 
 const esc = s => (s || "").toString();
 if (LAB.project) {
   document.getElementById("pstatus").textContent = esc(LAB.project.status);
   document.getElementById("project").innerHTML = `
     <div class="kv"><b>${esc(LAB.project.name)}</b></div>
-    <div class="kv"><b>研究问题:</b> <span class="v">${esc(LAB.project.question)}</span></div>
-    <div class="kv"><b>假设:</b> <span class="v">${esc(LAB.project.hypothesis)}</span></div>
-    <div class="kv"><b>当前计划:</b> <span class="v">${esc(LAB.project.plan)}</span></div>`;
+    <div class="kv"><b>Research question:</b> <span class="v">${esc(LAB.project.question)}</span></div>
+    <div class="kv"><b>Hypothesis:</b> <span class="v">${esc(LAB.project.hypothesis)}</span></div>
+    <div class="kv"><b>Current plan:</b> <span class="v">${esc(LAB.project.plan)}</span></div>`;
 } else {
   document.getElementById("pstatus").textContent = "no-active-project";
   document.getElementById("project").innerHTML =
-    '<div class="empty">暂无进行中课题。下一次实验夜班(2:00 CT)将进入开题模式:从最近论文动态中找 gap,生成候选 idea 并选定一个开始 pilot 实验。</div>';
+    '<div class="empty">No active project yet. The next night shift (2:00 AM CT) will enter ideation mode: mine recent paper findings for gaps, draft candidate ideas, and start a pilot experiment on the selected one.</div>';
 }
 if (LAB.pending.length) {
   document.getElementById("pendingbox").innerHTML = `
     <div class="pending">
-      <h2>⏳ 等你 comment 的问题</h2>
+      <h2>⏳ Questions awaiting your comments</h2>
       <ol>${LAB.pending.map(q => `<li>${esc(q)}</li>`).join("")}</ol>
-      <div class="how">回复方式:在 autoResearch_AI 项目的任何 Claude 会话里直接说,或编辑项目里的 claude/feedback.md。当晚 2:00 夜班执行。</div>
+      <div class="how">How to reply: say it in any Claude session inside the autoResearch_AI project, or edit claude/feedback.md in the project. The night shift executes it at 2:00 AM.</div>
     </div>`;
 }
 document.getElementById("logs").innerHTML = LAB.log.length ? LAB.log.map(e => `
   <div class="entry">
     <div class="ehead"><span class="d">${esc(e.date)}</span><span class="m">${esc(e.mode)}</span></div>
-    <p><b>做了什么:</b>${esc(e.did)}</p>
-    <p><b>结果:</b>${esc(e.results)}</p>
-    <p><b>结论:</b>${esc(e.conclusion)}</p>
-    <p><b>下一步:</b>${esc(e.next)}</p>
+    <p><b>Did:</b> ${esc(e.did)}</p>
+    <p><b>Results:</b> ${esc(e.results)}</p>
+    <p><b>Conclusion:</b> ${esc(e.conclusion)}</p>
+    <p><b>Next:</b> ${esc(e.next)}</p>
   </div>`).join("") :
-  '<div class="empty">还没有实验记录。第一晚的日志会出现在这里。</div>';
+  '<div class="empty">No experiment entries yet. The first night\'s log will appear here.</div>';
 </script>
 </body>
 </html>

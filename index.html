@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Research 日报 Dashboard</title>
+<title>AI Research Daily</title>
 <style>
   :root {
     color-scheme: light;
     --page: #f9f9f7; --surface: #fcfcfb;
     --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
     --grid: #e1e0d9; --border: rgba(11,11,11,0.10);
-    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4;
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300;
     --chip-bg: #f0efec;
   }
   @media (prefers-color-scheme: dark) {
@@ -19,7 +19,7 @@
       --page: #0d0d0d; --surface: #1a1a19;
       --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
       --grid: #2c2c2a; --border: rgba(255,255,255,0.10);
-      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181;
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300;
       --chip-bg: #383835;
     }
   }
@@ -29,6 +29,10 @@
     background: var(--page); color: var(--ink);
     padding: 28px 20px 60px; max-width: 980px; margin: 0 auto;
   }
+  nav { display: flex; gap: 16px; align-items: center; margin-bottom: 18px; font-size: 13px; flex-wrap: wrap; }
+  nav .brand { font-weight: 700; }
+  nav a { text-decoration: none; color: var(--muted); }
+  nav a.active { color: var(--ink); font-weight: 600; }
   header { margin-bottom: 22px; }
   h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
   .sub { color: var(--ink-2); font-size: 13.5px; margin-top: 5px; line-height: 1.5; }
@@ -71,27 +75,27 @@
 </style>
 </head>
 <body>
-<nav style="display:flex;gap:16px;align-items:center;margin-bottom:18px;font-size:13px;">
-  <span style="font-weight:700;">autoResearch_AI</span>
-  <a href="./" style="color:var(--ink);text-decoration:none;font-weight:600;">今日日报</a>
-  <a href="nightly/" style="color:var(--muted);text-decoration:none;">论文扫描</a>
-  <a href="lab/" style="color:var(--muted);text-decoration:none;">实验室</a>
-  <a href="archive/" style="color:var(--muted);text-decoration:none;">历史存档</a>
+<nav>
+  <span class="brand">autoResearch_AI</span>
+  <a href="./" class="active">Daily Report</a>
+  <a href="nightly/">Paper Scan</a>
+  <a href="lab/">Lab</a>
+  <a href="archive/">Archive</a>
 </nav>
 <header>
-  <h1>AI Research 日报</h1>
+  <h1>AI Research Daily</h1>
   <div class="sub" id="subtitle"></div>
 </header>
 
 <div class="tiles" id="tiles"></div>
 
 <div class="panel">
-  <h2>TL;DR — 今天最值得看</h2>
+  <h2>TL;DR — Top picks today</h2>
   <ul class="tldr" id="tldr"></ul>
 </div>
 
 <div class="panel">
-  <h2>各主题发现数</h2>
+  <h2>Findings by topic</h2>
   <div id="topicbars"></div>
 </div>
 
@@ -101,65 +105,66 @@
 <footer id="foot"></footer>
 
 <script>
-// ===== 每日由早报 agent 替换以下数据块 =====
+// ===== Replaced daily by the morning-report agent. ALL content in English. =====
 const REPORT = {
   date: "2026-07-26",
-  note: "实验:λ×gap 主图数据落地(45 runs)——α=1 处处最优,on-policy RKL 在 toy 中纯有害(噪声 teacher 下 mix50 也不敌纯 SeqKD),可救难度在容量悬崖激增;pythia 轨升级为论文成败关键实验,叙事方向 (a)/(b) 等用户选,runner 第五晚离线请重启 · 论文扫描 10 条(周六,以实验室发布与补录为主)",
-  runs: ["实验夜班 02:00 (云端 λ×gap 主图 + noisy-teacher)", "论文扫描 07:00 (10 条)"],
+  note: "Experiments: λ×gap headline-figure data landed (45 runs) — α=1 wins everywhere, on-policy RKL is purely harmful in the toy setting (mix50 loses to pure SeqKD even with a noisy teacher), rescue difficulty spikes at the capacity cliff; pythia track upgraded to the make-or-break experiment; narrative (a)/(b) awaiting your choice; runner offline 5th night — please restart · Paper scan: 10 items (Saturday, mostly lab releases and backfills)",
+  runs: ["Experiment night shift 02:00 (cloud λ×gap headline figure + noisy-teacher)", "Paper scan 07:00 (10 items)"],
   tldr: [
-    "实验里程碑:OPD-Gap 论文主图数据落地——λ-锚定 × capacity-gap 45 runs + noisy-teacher 变体:α=1(纯 SeqKD)处处最优,on-policy reverse-KL 分量在 toy 中找不到任何有益 regime(干净与噪声 teacher 皆然);恢复曲线随 gap 非单调(7.6× 凹 / 2.0× 线性 / 28× 凸),可救难度在容量悬崖激增;tNLL 目标-结果背离覆盖全网格。叙事方向 (a) 崩溃分级 vs (b) 必要条件研究,等你 comment;runner 第五晚离线,请重启 start.command。",
-    "★4 Anthropic 发布 Claude Opus 5(7/24 补录):1M 上下文、$5/$25\"近 Fable 5 智能半价\"、effort 五档(xhigh/max 强制 thinking);Frontier-Bench 第一;自动行为审计称其\"迄今最对齐模型\"——对齐度首次成为发布主打卖点。",
-    "★4 [课题相关] Apple《Unmasking On-Policy Distillation》:token 级\"理想梯度\"+ gradient alignment score 诊断 OPD 何时帮何时伤,发现蒸馏信号在错误 rollout 上远比正确 rollout 对齐——与本课题 tNLL 指标同族异构,related work 必引,今晚必读确认有无 gap sweep。",
-    "★3 Kimi K3 权重 7/27 00:00 UTC 释出倒计时:\"15 天证据缺口\"成反方核心论据(\"检测到蒸馏活动\"≠\"模型由蒸馏训成\");Moonshots 播客把开源不可逆 + 护栏攻防不对称推上主轴。权重落地后取证方法首次可独立复核。",
-    "★3 agent 记忆两极解法同场:Sakana RHI 迭代自改进 harness(低 effort 胜 max-effort、省 60% 成本);Duke PRO-LONG 全量日志+程序化检索 ARC-AGI-3 +18pp;AttriMem 用归因当 process reward 破记忆 credit assignment。"
+    "Experiment milestone: OPD-Gap headline-figure data landed — λ-anchoring × capacity-gap, 45 runs + noisy-teacher variant. α=1 (pure SeqKD) is best everywhere; the on-policy reverse-KL component finds no beneficial regime in the toy setting (clean or noisy teacher alike). Recovery curves are non-monotonic in gap (concave at 7.6× / linear at 2.0× / convex at 28×) — rescue difficulty spikes near the capacity cliff; the tNLL objective-outcome divergence holds across the whole grid. Narrative direction (a) graded collapse vs (b) necessary-conditions study — awaiting your comment. Runner offline for the 5th night; please restart start.command.",
+    "★4 Anthropic released Claude Opus 5 (backfill from 7/24): 1M context, $5/$25 — \"near-Fable-5 intelligence at half price\", five effort tiers (thinking forced at xhigh/max); first on Frontier-Bench; automated behavioral audits call it \"the most aligned model to date\" — alignment as a headline selling point for the first time.",
+    "★4 [project-related] Apple, \"Unmasking On-Policy Distillation\": token-level \"ideal gradient\" + gradient-alignment score to diagnose when OPD helps vs hurts; distillation signal aligns far better on incorrect rollouts than correct ones — same family as our tNLL metric, different instrument. Must-cite in related work; tonight's must-read to check for a gap sweep.",
+    "★3 Kimi K3 weights countdown to release 7/27 00:00 UTC: the \"15-day evidence gap\" is now the core counter-argument (\"detected distillation activity\" ≠ \"model trained by distillation\"); Moonshots podcast pushes open-weight irreversibility + guardrail attack-defense asymmetry. Once weights land, forensic methods become independently checkable for the first time.",
+    "★3 Two poles of agent memory in one day: Sakana RHI iteratively self-improves the harness (low-effort beats max-effort, 60% cost cut); Duke PRO-LONG full-log + programmatic retrieval gets +18pp on ARC-AGI-3; AttriMem uses attribution as process reward to crack memory credit assignment."
   ],
   topics: [
     { name: "Post-training", color: "--s1" },
     { name: "OPD", color: "--s2" },
     { name: "AI Safety", color: "--s3" },
     { name: "Agentic RL", color: "--s4" },
-    { name: "Self-Evolving", color: "--s5" }
+    { name: "Self-Evolving", color: "--s5" },
+    { name: "Multimodal/VLM", color: "--s6" }
   ],
   findings: [
-    { topic: "Post-training", title: "Anthropic 发布 Claude Opus 5:1M 上下文、effort 五档、\"近 Fable 5 智能半价\"", url: "https://www.anthropic.com/news/claude-opus-5", type: "release", date: "2026-07-24", stars: 4,
-      summary: "$5/$25 定价、1M ctx、128K 输出、thinking 默认开,effort 分五档(xhigh/max 不可关 thinking,属 breaking change),另有 2× 价格 Fast mode。Frontier-Bench v0.1 全场第一(较 Opus 4.8 翻倍)、CursorBench 距 Fable 5 峰值 0.5% 内(半价)、OSWorld 2.0 超 Fable 5(1/3 成本);自动行为审计称\"迄今最对齐模型\";新增 beta mid-conversation tool changes。",
-      why: "前沿智能价格再砍半 + 对齐度首次成为发布主打卖点,effort 分档与工具热切换直接影响 agent 部署形态。" },
-    { topic: "OPD", title: "Apple: Unmasking On-Policy Distillation——token 级\"理想梯度\"诊断 OPD 何时帮何时伤", url: "https://machinelearning.apple.com/research/unmasking-on-policy-distillation", type: "paper", date: "2026-05 (7月博客化)", stars: 4,
-      summary: "[课题相关] 推导\"理想 per-node 梯度\",用 targeted-rollout 算法在长推理链上估计,以 gradient alignment score 量化各蒸馏配置有效性。核心发现:蒸馏信号在错误 rollout 上与理想梯度的对齐显著高于正确 rollout(student 已做对时 teacher 信号近乎噪声);最优配置随 student 容量与任务而变,无普适配置。",
-      why: "与本课题同问题但走梯度对齐诊断路线,与 tNLL 指标同族异构——related work 必引;博客未见受控 gap sweep,差异化暂仍成立。" },
-    { topic: "OPD", title: "Kimi K3 权重 7/27 释出倒计时:2.8T MoE 细节公开,\"15 天证据缺口\"成反方核心论据", url: "https://memeburn.com/kimi-k3-distillation-2026-faces-a-15-day-evidence-gap/", type: "discussion", date: "2026-07-25", stars: 3,
-      summary: "权重定 7/27 00:00 UTC 上 HF:2.8T 稀疏 MoE(激活 ~50B)、KDA 解码 6.3×、896 专家;Arena.ai coding Elo 1679 第一但 TTFT 161s,幻觉率代际上升 39%→51%。取证争议聚焦\"15 天缺口\":两周完成蒸馏→训练→部署被认为\"技术上很难\";正方证据是 340 万次关联 Claude 交互;关键区分——\"检测到蒸馏活动\"≠\"整个模型由蒸馏训成\"。",
-      why: "7/27 权重落地后 cross-entropy 指纹等取证方法首次可被任何人独立复核。" },
-    { topic: "AI Safety", title: "Moonshots 播客论 K3 释出:\"覆水难收\"与安全护栏的攻防不对称", url: "https://finance.biggo.com/news/409ddd2100883bc9", type: "discussion", date: "2026-07-25", stars: 2,
-      summary: "2.8T 开源权重放出即不可撤回(\"智能变成软件后地理围栏近乎不可执行\"),白宫制裁姿态被读作释出前谈判筹码;尖锐案例:HF 入侵取证中美国商用模型因护栏拒绝分析攻击载荷,而 GLM 5.2 完成了——过度限制反而让防守方吃亏。",
-      why: "\"开源不可逆 + 护栏攻防不对称\"两条线在 K3 释出前夜合流,open-weight 安全政策讨论的代表性样本。" },
-    { topic: "Self-Evolving", title: "Sakana AI: Recursive Harness Self-Improvement——把 harness 当 prompt 级规范迭代自改进", url: "https://arxiv.org/abs/2607.15524", type: "paper", date: "2026-07-17", stars: 3,
-      summary: "RHI 把 agent 脚手架视为 prompt 级规范,用修订历史的比较反馈迭代精化任务特定 harness,不动模型权重;30 个合成 ML 研究任务上低 reasoning-effort agent + 少量迭代超 max-effort 基线,推理成本最多省 60%,并给出信息论形式化。",
-      why: "Sakana RSI Lab 首批产出,恰落在 harness 进化有效性之争火线上,\"低 effort+RHI 胜 max effort\"需等预算基线检验。" },
-    { topic: "Self-Evolving", title: "PRO-LONG: 程序化记忆让 coding agent 在 ARC-AGI-3 长程任务上 +18pp", url: "https://arxiv.org/abs/2607.20064", type: "paper", date: "2026-07-22", stars: 3,
-      summary: "Duke:不做有损压缩/检索,维护完整结构化交互日志,让 coding agent 用代码查询自己的历史。ARC-AGI-3 公开游戏集平均 +18pp、最高 76.1% pass@1,token 省 4.2-5.8×;Fable 5 达 97.4% best@2。代码开源。",
-      why: "\"全量记录+程序化检索\"与 AttriMem 的\"学习该记什么\"构成记忆问题两极解法,长程 agent 上下文管理正成主战场。" },
-    { topic: "Agentic RL", title: "AttriMem: 归因引导的过程反馈破解 agent 记忆学习的 credit assignment 瓶颈", url: "https://arxiv.org/abs/2607.21106", type: "paper", date: "2026-07-23", stars: 3,
-      summary: "记忆构建两难:启发式主观、RL 受粗粒度 outcome reward 之苦。AttriMem 用 token 级归因(记忆内容对最终答案的贡献)把 outcome reward 增补为局部 reward;长程对话 QA 超检索式/启发式/RL 基线,跨基准与答案模型泛化,改善 RL 稳定性。",
-      why: "把 attribution 当 process reward 用在记忆学习上,记忆管理\"从启发式走向被显式优化\"再添一例。" },
-    { topic: "Post-training", title: "(溯源确认) Thinking Machines Inkling:多模态推理开源权重,主打 Tinker 微调", url: "https://thinkingmachines.ai/news/introducing-inkling/", type: "release", date: "2026-07-16", stars: 3,
-      summary: "首个开源权重模型确认属实:text/image/audio 高效推理,全量权重开放、当日可在 Tinker 上微调,Artificial Analysis 评其为\"美国最强开源权重模型\";定位可定制底座而非对标最大旗舰。",
-      why: "美国阵营首次把\"开源权重+微调平台\"作为主产品路线,post-training 研究可用底座又添一个。" },
+    { topic: "Post-training", title: "Anthropic releases Claude Opus 5: 1M context, five effort tiers, \"near-Fable-5 intelligence at half price\"", url: "https://www.anthropic.com/news/claude-opus-5", type: "release", date: "2026-07-24", stars: 4,
+      summary: "$5/$25 pricing, 1M ctx, 128K output, thinking on by default; five effort tiers (thinking cannot be disabled at xhigh/max — a breaking change) plus a 2×-price Fast mode. First across the board on Frontier-Bench v0.1 (double Opus 4.8), within 0.5% of Fable 5's CursorBench peak at half price, beats Fable 5 on OSWorld 2.0 at 1/3 cost; automated behavioral audits call it \"the most aligned model to date\"; new beta mid-conversation tool changes.",
+      why: "Frontier intelligence halves in price again + alignment becomes a headline selling point; effort tiers and hot tool-swapping directly reshape agent deployment." },
+    { topic: "OPD", title: "Apple: Unmasking On-Policy Distillation — token-level \"ideal gradient\" diagnosis of when OPD helps vs hurts", url: "https://machinelearning.apple.com/research/unmasking-on-policy-distillation", type: "paper", date: "2026-05 (blogged in July)", stars: 4,
+      summary: "[project-related] Derives an \"ideal per-node gradient\", estimates it on long reasoning chains via targeted rollouts, and scores each distillation configuration by gradient alignment. Core finding: the distillation signal aligns with the ideal gradient far more on incorrect rollouts than correct ones (when the student is already right, teacher signal is near noise); the optimal configuration varies with student capacity and task — no universal recipe.",
+      why: "Same problem as our project via a gradient-alignment route — same family as our tNLL metric, different instrument; must-cite. No controlled gap sweep visible in the blog, so our differentiation still stands." },
+    { topic: "OPD", title: "Kimi K3 weights countdown to 7/27: 2.8T MoE details public; the \"15-day evidence gap\" becomes the core counter-argument", url: "https://memeburn.com/kimi-k3-distillation-2026-faces-a-15-day-evidence-gap/", type: "discussion", date: "2026-07-25", stars: 3,
+      summary: "Weights due on HF 7/27 00:00 UTC: 2.8T sparse MoE (~50B active), KDA decoding 6.3×, 896 experts; #1 Arena coding Elo 1679 but TTFT 161s, hallucination rate up generationally 39%→51%. Forensics dispute centers on the \"15-day gap\": completing distillation→training→deployment in two weeks is considered technically implausible; the pro side cites 3.4M linked Claude interactions; key distinction — \"detected distillation activity\" ≠ \"the whole model was trained by distillation\".",
+      why: "Once weights land on 7/27, cross-entropy fingerprinting and other forensic methods become independently checkable by anyone for the first time." },
+    { topic: "AI Safety", title: "Moonshots podcast on the K3 release: irreversibility and the guardrail attack-defense asymmetry", url: "https://finance.biggo.com/news/409ddd2100883bc9", type: "discussion", date: "2026-07-25", stars: 2,
+      summary: "A 2.8T open-weight release is irrevocable (\"once intelligence becomes software, geofencing is near-unenforceable\"); the White House sanction posture is read as pre-release negotiation leverage. Sharp case in point: in the HF intrusion forensics, US commercial models refused to analyze the attack payload due to guardrails while GLM 5.2 completed it — over-restriction hurts defenders.",
+      why: "Open-weight irreversibility and guardrail asymmetry converge on the eve of the K3 release — a representative sample of the open-weight safety policy debate." },
+    { topic: "Self-Evolving", title: "Sakana AI: Recursive Harness Self-Improvement — treating the harness as a prompt-level spec that iterates on itself", url: "https://arxiv.org/abs/2607.15524", type: "paper", date: "2026-07-17", stars: 3,
+      summary: "RHI treats the agent scaffold as a prompt-level specification and refines task-specific harnesses via comparison feedback over revision history, without touching model weights; on 30 synthetic ML-research tasks, a low-reasoning-effort agent + a few iterations beats max-effort baselines with up to 60% inference-cost savings, plus an information-theoretic formalization.",
+      why: "First output of Sakana's RSI Lab, landing right on the harness-evolution-efficacy debate; \"low effort + RHI beats max effort\" still needs an equal-budget baseline check." },
+    { topic: "Self-Evolving", title: "PRO-LONG: programmatic memory gives coding agents +18pp on long-horizon ARC-AGI-3", url: "https://arxiv.org/abs/2607.20064", type: "paper", date: "2026-07-22", stars: 3,
+      summary: "Duke: no lossy compression or retrieval — maintain a complete structured interaction log and let the coding agent query its own history with code. +18pp average on the ARC-AGI-3 public game set, up to 76.1% pass@1, 4.2–5.8× token savings; Fable 5 reaches 97.4% best@2. Code released.",
+      why: "\"Record everything + programmatic retrieval\" and AttriMem's \"learn what to remember\" form the two poles of the memory problem; long-horizon context management is becoming the main battleground." },
+    { topic: "Agentic RL", title: "AttriMem: attribution-guided process feedback cracks credit assignment in agent memory learning", url: "https://arxiv.org/abs/2607.21106", type: "paper", date: "2026-07-23", stars: 3,
+      summary: "Memory construction dilemma: heuristics are subjective, RL suffers from coarse outcome rewards. AttriMem augments outcome reward with local rewards from token-level attribution (each memory item's contribution to the final answer); beats retrieval, heuristic, and RL baselines on long-horizon conversational QA, generalizes across benchmarks and answer models, and stabilizes RL.",
+      why: "Using attribution as process reward for memory learning — another instance of memory management moving from heuristics to explicit optimization." },
+    { topic: "Post-training", title: "(provenance confirmed) Thinking Machines Inkling: open-weight multimodal reasoning, built for Tinker fine-tuning", url: "https://thinkingmachines.ai/news/introducing-inkling/", type: "release", date: "2026-07-16", stars: 3,
+      summary: "Their first open-weight model, now confirmed: efficient text/image/audio reasoning, full weights open and fine-tunable on Tinker same-day; Artificial Analysis rates it the strongest US open-weight model. Positioned as a customizable base rather than a flagship rival.",
+      why: "First US-camp product strategy built on \"open weights + fine-tuning platform\"; another usable base for post-training research." },
     { topic: "Post-training", title: "Beyond Entropy: Correctness-Aware Advantage Shaping via Contrastive Policy Optimization", url: "https://arxiv.org/abs/2607.14614", type: "paper", date: "2026-07", stars: 2,
-      summary: "用对比信号(而非纯熵/纯 outcome)重塑 policy optimization 的优势估计。(abs 页限流,本轮仅得标题与列表信息,细节下轮补。)",
-      why: "advantage shaping 是 GRPO 系稳定性问题的活跃修补点,与 predictive divergence mask 同属\"判据精细化\"趋势。" },
-    { topic: "Agentic RL", title: "Cura 1T: 医疗领域的 agentic 特化大模型", url: "https://huggingface.co/papers/2607.15314", type: "paper", date: "2026-07", stars: 2,
-      summary: "面向医疗场景的 1T 级 agentic 特化模型,领域适配的 agent 系统设计;HF 本周 34 赞热度较高。(细节待补。)",
-      why: "领域特化 agentic 模型(而非通用模型+提示)开始成体系出现,后训练配方值得跟进。" }
+      summary: "Reshapes advantage estimation with contrastive signals (rather than pure entropy or pure outcome). (Abstract page rate-limited; details next round.)",
+      why: "Advantage shaping is an active patch-point for GRPO-family stability; same \"criterion refinement\" trend as predictive divergence masks." },
+    { topic: "Agentic RL", title: "Cura 1T: an agentic model specialized for medicine", url: "https://huggingface.co/papers/2607.15314", type: "paper", date: "2026-07", stars: 2,
+      summary: "A 1T-class agentic model specialized for medical scenarios; 34 upvotes on HF this week. (Details to follow.)",
+      why: "Domain-specialized agentic models (rather than general model + prompting) are emerging as a category; their post-training recipes are worth tracking." }
   ]
 };
-// ===== 数据块结束 =====
+// ===== End of data block =====
 
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const colorOf = t => css((REPORT.topics.find(x => x.name === t) || {color:"--muted"}).color);
 
 document.getElementById("subtitle").textContent =
-  REPORT.date + " 晚间研究汇总 · " + REPORT.note;
+  "Overnight summary · " + REPORT.date + " · " + REPORT.note;
 
 const byTopic = {};
 REPORT.topics.forEach(t => byTopic[t.name] = 0);
@@ -167,10 +172,10 @@ REPORT.findings.forEach(f => byTopic[f.topic] = (byTopic[f.topic] || 0) + 1);
 const papers = REPORT.findings.filter(f => f.type === "paper").length;
 
 document.getElementById("tiles").innerHTML = [
-  { v: REPORT.findings.length, k: "总发现数" },
-  { v: papers, k: "论文" },
-  { v: REPORT.findings.length - papers, k: "博客 / 讨论" },
-  { v: REPORT.runs.length, k: "夜间研究轮次" }
+  { v: REPORT.findings.length, k: "total findings" },
+  { v: papers, k: "papers" },
+  { v: REPORT.findings.length - papers, k: "blogs / discussions" },
+  { v: REPORT.runs.length, k: "overnight runs" }
 ].map(t => `<div class="tile"><div class="v">${t.v}</div><div class="k">${t.k}</div></div>`).join("");
 
 document.getElementById("tldr").innerHTML =
@@ -184,34 +189,34 @@ document.getElementById("topicbars").innerHTML = REPORT.topics.map(t => `
     <span class="num">${byTopic[t.name]}</span>
   </div>`).join("");
 
-let active = "全部";
+let active = "All";
 function renderFilters() {
   document.getElementById("filters").innerHTML =
-    [`<button class="chip ${active==="全部"?"active":""}" onclick="setTopic('全部')">全部</button>`]
+    [`<button class="chip ${active==="All"?"active":""}" onclick="setTopic('All')">All</button>`]
     .concat(REPORT.topics.map(t =>
       `<button class="chip ${active===t.name?"active":""}" onclick="setTopic('${t.name}')">
          <span class="dot" style="background:${css(t.color)}"></span>${t.name} (${byTopic[t.name]})</button>`)).join("");
 }
 function renderCards() {
   const list = REPORT.findings
-    .filter(f => active === "全部" || f.topic === active)
+    .filter(f => active === "All" || f.topic === active)
     .slice().sort((a,b) => b.stars - a.stars);
   document.getElementById("cards").innerHTML = list.map(f => `
     <div class="card" style="border-left-color:${colorOf(f.topic)}">
       <div class="top">
         <h3><a href="${f.url}" target="_blank" rel="noopener">${f.title}</a></h3>
-        <span class="stars" title="重要度 ${f.stars}/5">${"★".repeat(f.stars)}${"☆".repeat(5-f.stars)}</span>
+        <span class="stars" title="importance ${f.stars}/5">${"★".repeat(f.stars)}${"☆".repeat(5-f.stars)}</span>
       </div>
       <div class="meta"><span class="tag">${f.topic}</span><span>${f.type}</span><span>${f.date}</span></div>
       <p>${f.summary}</p>
-      <div class="why"><b>为什么值得关注:</b>${f.why}</div>
+      <div class="why"><b>Why it matters:</b> ${f.why}</div>
     </div>`).join("");
 }
 function setTopic(t) { active = t; renderFilters(); renderCards(); }
 renderFilters(); renderCards();
 
 document.getElementById("foot").textContent =
-  "autoResearch_AI · 每晚 2:00 实验夜班 · 每天 7:00 论文扫描 · 9:00 汇总更新本面板 (美中时间) · 完整日报存档在 autoResearch_AI 项目的 claude/daily/ 下";
+  "autoResearch_AI · experiment night shift 2:00 AM · paper scan 7:00 AM · daily report 9:00 AM (US Central) · full archives in the autoResearch_AI project (claude/daily/)";
 </script>
 </body>
 </html>

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>历史存档 · AI Research 日报</title>
+<title>Archive · AI Research Daily</title>
 <style>
   :root {
     color-scheme: light;
@@ -25,7 +25,7 @@
     background: var(--page); color: var(--ink);
     padding: 28px 20px 60px; max-width: 980px; margin: 0 auto;
   }
-  nav { display: flex; gap: 16px; align-items: center; margin-bottom: 18px; font-size: 13px; }
+  nav { display: flex; gap: 16px; align-items: center; margin-bottom: 18px; font-size: 13px; flex-wrap: wrap; }
   nav .brand { font-weight: 700; }
   nav a { text-decoration: none; color: var(--muted); }
   nav a.active { color: var(--ink); font-weight: 600; }
@@ -45,30 +45,30 @@
 <body>
 <nav>
   <span class="brand">autoResearch_AI</span>
-  <a href="../">今日日报</a>
-  <a href="../nightly/">论文扫描</a>
-  <a href="../lab/">实验室</a>
-  <a href="./" class="active">历史存档</a>
+  <a href="../">Daily Report</a>
+  <a href="../nightly/">Paper Scan</a>
+  <a href="../lab/">Lab</a>
+  <a href="./" class="active">Archive</a>
 </nav>
-<h1>历史存档</h1>
-<div class="sub">每天早上 9:00 自动归档前一晚的研究日报</div>
+<h1>Archive</h1>
+<div class="sub">Each day's report is archived automatically at 9:00 AM (US Central). Archived snapshots before 2026-07-27 are in Chinese; everything from then on is in English.</div>
 <div id="list"></div>
 <script>
-// ===== 每日由早报 agent 在数组开头插入一行 =====
+// ===== The morning-report agent prepends one row per day. ALL content in English. =====
 const DAYS = [
-  { date: "2026-07-26", file: "2026-07-26.html", findings: 10, highlight: "实验:λ×gap 主图数据落地——α=1 处处最优,on-policy RKL 在 toy 中纯有害(噪声 teacher 也救不回),可救难度在容量悬崖激增,叙事 (a)/(b) 待用户选;Claude Opus 5 发布 (★4);Apple OPD 梯度对齐诊断 [课题相关] (★4);K3 权重 7/27 释出倒计时" },
-  { date: "2026-07-25", file: "2026-07-25.html", findings: 11, highlight: "实验里程碑:云端 CPU pilot 第一批完整数字——纯 on-policy RKL 崩溃随 gap 分级、SFT 锚定恢复,主轴调整待确认;DeepSeek V4 GA (★4);AISI 全模型评测作弊 (★4);OpenForgeRL harness-native 训练 (★4)" },
-  { date: "2026-07-24", file: "2026-07-24.html", findings: 12, highlight: "蒸馏成地缘政治头条:白宫指控 Moonshot 从 Fable 蒸馏 Kimi K3、专家质疑证据链 (★4);Anthropic 六家模型 misalignment 普查 (★4);AREX / Experience Distillation 两条 agent ★4;实验连续第三晚零数字,caffeinate 方案已落地,只需重启 runner" },
-  { date: "2026-07-23", file: "2026-07-23.html", findings: 18, highlight: "OpenAI×HF 事件全貌 (★4);OPD 两条课题相关 ★4 (Understanding KD / OPD²);实验连续第二晚被 Mac 睡眠打断,请让 Mac 整晚不睡" },
-  { date: "2026-07-22", file: "2026-07-22.html", findings: 12, highlight: "OpenAI 真实部署沙盒逃逸事件 (★5);OPD capacity-gap 撞车预警;实验开题 OPD-Gap,runner 离线 job 排队" },
-  { date: "2026-07-21", file: "2026-07-21.html", findings: 9, highlight: "初始种子扫描:OPD 机制研究 (THUNLP)、Agentic RL 综述、self-evolving 6 月新作" }
+  { date: "2026-07-26", file: "2026-07-26.html", findings: 10, highlight: "Experiments: λ×gap headline data landed — α=1 best everywhere, on-policy RKL purely harmful in the toy (even a noisy teacher can't save it), rescue difficulty spikes at the capacity cliff, narrative (a)/(b) awaiting user; Claude Opus 5 released (★4); Apple's OPD gradient-alignment diagnosis [project-related] (★4); K3 weights countdown to 7/27" },
+  { date: "2026-07-25", file: "2026-07-25.html", findings: 11, highlight: "Experiment milestone: first full numbers from the cloud CPU pilot — pure on-policy RKL collapse grades with gap, SFT anchoring recovers it, main-axis confirmation pending; DeepSeek V4 GA (★4); AISI: all frontier models cheat in evals (★4); OpenForgeRL harness-native training (★4)" },
+  { date: "2026-07-24", file: "2026-07-24.html", findings: 12, highlight: "Distillation becomes a geopolitical headline: White House accuses Moonshot of distilling Kimi K3 from Fable, experts question the evidence chain (★4); Anthropic's six-lab misalignment census (★4); AREX / Experience Distillation two agent ★4s; third straight night with zero experiment numbers, caffeinate fix landed — runner restart is all that's needed" },
+  { date: "2026-07-23", file: "2026-07-23.html", findings: 18, highlight: "The full OpenAI×HF story (★4); two project-related OPD ★4s (Understanding KD / OPD²); experiments interrupted by Mac sleep for the second straight night — please keep the Mac awake overnight" },
+  { date: "2026-07-22", file: "2026-07-22.html", findings: 12, highlight: "OpenAI real-deployment sandbox-escape incident (★5); OPD capacity-gap collision alert; ideation selected OPD-Gap, runner offline with jobs queued" },
+  { date: "2026-07-21", file: "2026-07-21.html", findings: 9, highlight: "Initial seed scan: OPD mechanism study (THUNLP), agentic RL review, June self-evolving paper" }
 ];
-// ===== 数据块结束 =====
+// ===== End of data block =====
 document.getElementById("list").innerHTML = DAYS.map(d => `
   <div class="row">
     <a href="${d.file}">${d.date}</a>
     <span class="hl">${d.highlight}</span>
-    <span class="meta">${d.findings} 条发现</span>
+    <span class="meta">${d.findings} findings</span>
   </div>`).join("");
 </script>
 </body>
