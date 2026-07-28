@@ -10,7 +10,7 @@
     --page: #f9f9f7; --surface: #fcfcfb;
     --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
     --grid: #e1e0d9; --border: rgba(11,11,11,0.10);
-    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300;
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7;
     --chip-bg: #f0efec;
   }
   @media (prefers-color-scheme: dark) {
@@ -19,7 +19,7 @@
       --page: #0d0d0d; --surface: #1a1a19;
       --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
       --grid: #2c2c2a; --border: rgba(255,255,255,0.10);
-      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300;
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9;
       --chip-bg: #383835;
     }
   }
@@ -79,8 +79,6 @@
   <span class="brand">autoResearch_AI</span>
   <a href="./" class="active">Daily Report</a>
   <a href="nightly/">Paper Scan</a>
-  <a href="lab/">Lab</a>
-  <a href="archive/">Archive</a>
 </nav>
 <header>
   <h1>AI Research Daily</h1>
@@ -108,12 +106,11 @@
 // ===== Replaced daily by the morning-report agent. ALL content in English. =====
 const REPORT = {
   date: "2026-07-27",
-  note: "Experiments: divergence-instantiation sweep closed out — the on-policy collapse is NOT reverse-KL-specific (FKL/JSD/top-5 all collapse; top-5 is worst, opposite of the LLM-scale top-K fix), anchoring is implementation-robust, and at the 28× cliff rescue is a minority-of-seeds event; \"divergence choice\" is eliminated as an H4 escape hatch, so the pythia (pretrained-prior) track now carries the paper — runner offline 6th night, please restart · Paper scan: 11 items (Sunday; K3 weights actually shipped)",
-  runs: ["Experiment night shift 02:00 (cloud divergence sweep, 42 runs)", "Paper scan 07:00 (11 items)"],
+  note: "Paper scan: 11 items across 7 topics (Sunday edition; Kimi K3 open weights actually shipped)",
+  runs: ["Paper scan 07:00 (11 items)"],
   tldr: [
     "Kimi K3 open weights actually shipped — 2.8T MoE (16/896 experts active, 1M context, MXFP4 quantization-aware-trained) landed on Hugging Face at 00:00 UTC Jul 27. The distillation-provenance dispute moves from claims to physics: cross-entropy fingerprints and the \"15-day gap\" argument are now independently re-runnable by anyone with the hardware, and first independent evals (Semgrep) already show a precision gap behind frontier models.",
     "★4 [project-related] Direct-OPD (Tsinghua + ByteDance Seed): vanilla on-policy distillation DEGRADES students already stronger than the teacher (56.7%→~50%); distilling the teacher's RL-induced delta (log-prob difference between a checkpoint pair) fixes it — Qwen3-1.7B 48.3%→58.3% AIME at ~1/50 the compute of direct RL. The mirror image of OPD-Gap's axis: together they frame OPD viability as a two-sided window in capacity ratio. Must-cite.",
-    "Lab result of the night: the collapse in our toy is not reverse-KL-specific — forward-KL, JSD, and top-5-truncated RKL all collapse at every gap, and top-5 truncation is consistently worst (the opposite direction of the LLM-scale top-K remedy). Divergence instantiation is eliminated as an H4 candidate; narrative (b) has one leg finished and the pythia track matters more than ever. Runner offline 6th night — please restart start.command.",
     "★4 Black Forest Labs FLUX 3: one Self-Flow backbone jointly generates image / 20s 720p video / native audio and doubles as a robot policy (FLUX-mimic, <80 ms on one RTX 5090) — the \"world model → policy\" convergence arriving from the generative side, on an open-weights track.",
     "★3 Structured output collapses answer diversity (Cornell Tech, 44 models): merely asking for JSON drops answer-choice surprisal 1.80→1.58 bits and pushes the modal answer from 41% to 64% of responses — a cheap-to-check confound for any post-training eval that uses formatted responses."
   ],
@@ -123,7 +120,8 @@ const REPORT = {
     { name: "AI Safety", color: "--s3" },
     { name: "Agentic RL", color: "--s4" },
     { name: "Self-Evolving", color: "--s5" },
-    { name: "Multimodal/VLM", color: "--s6" }
+    { name: "Multimodal/VLM", color: "--s6" },
+    { name: "MoE", color: "--s7" }
   ],
   findings: [
     { topic: "OPD", title: "Kimi K3 open weights released: 2.8T-parameter MoE lands on Hugging Face", url: "https://huggingface.co/moonshotai/Kimi-K3", type: "release", date: "2026-07-27", stars: 4,
@@ -219,7 +217,7 @@ function setTopic(t) { active = t; renderFilters(); renderCards(); }
 renderFilters(); renderCards();
 
 document.getElementById("foot").textContent =
-  "autoResearch_AI · experiment night shift 2:00 AM · paper scan 7:00 AM · daily report 9:00 AM (US Central) · full archives in the autoResearch_AI project (claude/daily/)";
+  "autoResearch_AI · paper scan 7:00 AM · daily report 9:00 AM (US Central) · full archives in the autoResearch_AI project (claude/daily/)";
 </script>
 </body>
 </html>
