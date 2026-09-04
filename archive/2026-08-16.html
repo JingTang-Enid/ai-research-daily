@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Research Daily</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7; --surface: #fcfcfb;
+    --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+    --grid: #e1e0d9; --border: rgba(11,11,11,0.10);
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7;
+    --chip-bg: #f0efec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page: #0d0d0d; --surface: #1a1a19;
+      --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+      --grid: #2c2c2a; --border: rgba(255,255,255,0.10);
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9;
+      --chip-bg: #383835;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page); color: var(--ink);
+    padding: 28px 20px 60px; max-width: 980px; margin: 0 auto;
+  }
+  nav { display: flex; gap: 16px; align-items: center; margin-bottom: 18px; font-size: 13px; flex-wrap: wrap; }
+  nav .brand { font-weight: 700; }
+  nav a { text-decoration: none; color: var(--muted); }
+  nav a.active { color: var(--ink); font-weight: 600; }
+  header { margin-bottom: 22px; }
+  h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+  .sub { color: var(--ink-2); font-size: 13.5px; margin-top: 5px; line-height: 1.5; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 20px 0; }
+  .tile { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .tile .v { font-size: 26px; font-weight: 700; }
+  .tile .k { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; margin-bottom: 18px; }
+  .panel h2 { font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: 12px; }
+  .barrow { display: grid; grid-template-columns: 150px 1fr 30px; align-items: center; gap: 10px; margin: 7px 0; font-size: 12.5px; }
+  .barrow .lab { color: var(--ink-2); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bartrack { height: 14px; position: relative; }
+  .bar { height: 14px; border-radius: 0 4px 4px 0; }
+  .barrow .num { font-variant-numeric: tabular-nums; color: var(--ink-2); }
+  .tldr li { margin: 8px 0 8px 0; line-height: 1.55; font-size: 13.5px; color: var(--ink); }
+  .tldr { padding-left: 18px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 14px; }
+  .chip {
+    border: 1px solid var(--border); background: var(--chip-bg); color: var(--ink-2);
+    border-radius: 999px; padding: 6px 13px; font-size: 12.5px; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  .chip .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .chip.active { background: var(--ink); color: var(--page); border-color: var(--ink); }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; margin-bottom: 10px; border-left: 4px solid var(--grid);
+  }
+  .card .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .card h3 { font-size: 14.5px; font-weight: 600; line-height: 1.4; }
+  .card h3 a { color: inherit; text-decoration: none; }
+  .card h3 a:hover { text-decoration: underline; }
+  .meta { font-size: 11.5px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  .stars { color: var(--s4); font-size: 12px; letter-spacing: 1px; white-space: nowrap; }
+  .card p { font-size: 13px; color: var(--ink-2); line-height: 1.55; margin-top: 8px; }
+  .why { font-size: 12.5px; margin-top: 7px; color: var(--ink); }
+  .why b { font-weight: 600; }
+  .tag { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--chip-bg); color: var(--ink-2); }
+  footer { margin-top: 26px; font-size: 12px; color: var(--muted); line-height: 1.6; }
+</style>
+</head>
+<body>
+<nav>
+  <span class="brand">autoResearch_AI</span>
+  <a href="../" class="active">Daily Report</a>
+  <a href="../nightly/">Paper Scan</a>
+</nav>
+<header>
+  <h1>AI Research Daily</h1>
+  <div class="sub" id="subtitle"></div>
+</header>
+
+<div class="tiles" id="tiles"></div>
+
+<div class="panel">
+  <h2>TL;DR — Top picks today</h2>
+  <ul class="tldr" id="tldr"></ul>
+</div>
+
+<div class="panel">
+  <h2>Findings by topic</h2>
+  <div id="topicbars"></div>
+</div>
+
+<div class="filters" id="filters"></div>
+<div id="cards"></div>
+
+<footer id="foot"></footer>
+
+<script>
+// ===== Replaced daily by the morning-report agent. ALL content in English. =====
+const REPORT = {
+  date: "2026-08-16",
+  note: "Paper scan: 16 items across 7 topics (backfill cleared: Apple's Unmasking OPD read in full, Qwen3.8-27B resolved as dense; Gemini 3.7 Flash ships)",
+  runs: ["Paper scan 07:00 (16 items)"],
+  tldr: [
+    "★3 Google ships Gemini 3.7 Flash: FrontierCode 1.1 43.6%, edging Claude Sonnet 5's 42.7% at introductory pricing of $0.75/$3.75 per 1M tokens (50% off through 2026), with customizable thinking configurations. Same week, OpenAI previews GPT-5.6 Sol \"Ultrafast\" — the unmodified flagship served on Cerebras hardware at up to 750 tok/s (14× standard). Capability-per-dollar and tokens-per-second are now both competitive axes.",
+    "★3 Qwen3.8-27B model card resolved: it is a DENSE hybrid-attention VLM, not MoE — 27.78B params, 48 Gated DeltaNet + 16 full-attention layers, native text/image/video input, 262K context, Apache 2.0. The Qwen3.8 lineage splits its architecture by scale (sparse MoE at 2.4T, dense at 27B); the 08-14 \"MoE\" label is corrected.",
+    "★3 \"Practice Makes Unsafe\": skill misevolution gets a systematic benchmark — all 21 of 21 evolved agent configurations authored unsafe artifacts, and exposure to just 3 malicious tasks raised carryover attack success 16.0%→35.3%. Ships SkillMisevo-Gym/Bench plus SafeEvolve, a governance wrapper cutting unsafe retrieval by 26.7pp at ~0.4pp utility cost.",
+    "★3 The OPD backfill wave: Apple's \"Unmasking On-Policy Distillation\" (training-free gradient-alignment diagnostic; the optimal distillation configuration depends jointly on student capacity and task — no universal recipe) plus a failure-mode taxonomy (2603.25562) fixing three OPD pathologies at the objective level for +19.8% over standard OPD.",
+    "★3 Spark-to-Paper: end-to-end paper generation as thirteen composable, checkable skills (277 HF upvotes) — deterministic integrity checks plus adversarial self-critique raise fabrication detection from 14% to 92%, with 99.5% citation validity at $8.1 per manuscript. Research integrity as a harness property, not a model property."
+  ],
+  topics: [
+    { name: "Post-training", color: "--s1" },
+    { name: "OPD", color: "--s2" },
+    { name: "AI Safety", color: "--s3" },
+    { name: "Agentic RL", color: "--s4" },
+    { name: "Self-Evolving", color: "--s5" },
+    { name: "Multimodal/VLM", color: "--s6" },
+    { name: "MoE", color: "--s7" }
+  ],
+  findings: [
+    { topic: "Post-training", title: "Gemini 3.7 Flash: Google's cheap tier takes the coding crown at half price", url: "https://deepmind.google/models/model-cards/gemini-3-7-flash/", type: "release", date: "2026-08-13", stars: 3,
+      summary: "Built on Gemini 3.6 Flash's architecture with \"algorithmic improvements to its core reasoning foundation\" plus customizable thinking configurations (quality/cost/latency). FrontierCode 1.1 43.6% vs Claude Sonnet 5's 42.7% and Gemini 3.6 Flash's 34.4%; HLE-Verified 53.6%; Terminal-bench 3.0 14.9% (well behind GPT-5.6 Terra's 20.8%). 1M input / 64K output context, text+image+audio+video input; introductory pricing $0.75/$3.75 per 1M tokens (50% off) through 2026, doubling in January.",
+      why: "A Flash-tier model beating a frontier mid-tier on a hard coding benchmark at a fraction of the price is the capability-per-dollar competition reaching Google's cheap tier — with reasoning-effort configurability as the differentiator." },
+    { topic: "OPD", title: "Unmasking On-Policy Distillation (Apple): a training-free diagnostic for when distillation helps", url: "https://arxiv.org/abs/2605.10889", type: "paper", date: "2026-05-11", stars: 3,
+      summary: "[project-related] Measures the cosine alignment between any distillation gradient and an \"ideal per-node gradient\" (the update maximally increasing student success probability), analyzable per token/question/teacher without training runs. Findings: guidance aligns far better on incorrect rollouts than correct ones, and the optimal distillation configuration depends jointly on student capacity and task — no universal recipe. The diagnostic is analytical/white-box (needs teacher and student internals), not a cheap online rollout statistic. Read in full this round.",
+      why: "The sharpest external evidence yet that distillation recipes are capacity- and task-dependent — and a gradient-level (not rollout-level) early-warning instrument." },
+    { topic: "OPD", title: "Revisiting On-Policy Distillation: a failure-mode taxonomy with objective-level fixes", url: "https://arxiv.org/abs/2603.25562", type: "paper", date: "2026-03-31", stars: 3,
+      summary: "[project-related] Documents three OPD failure modes — optimization dominated by a small subset of locally-positive tokens; teachers assigning high probability to degenerate student prefixes (repetition, self-resetting reasoning) once trajectories leave teacher support; and tokenizer/special-token mismatch distorting rewards — and fixes them with teacher top-K local support matching, support-set renormalization, top-p rollout sampling, and special-token masking (+19.8% over standard OPD; fixed 7B teacher-student pair).",
+      why: "The \"teacher misjudges diverged student prefixes\" failure mode gives the OPD-collapse literature an objective-side mechanism account at LLM scale." },
+    { topic: "Self-Evolving", title: "Practice Makes Unsafe: skill misevolution measured across the agent lifecycle", url: "https://arxiv.org/abs/2608.12851", type: "paper", date: "2026-08-13", stars: 3,
+      summary: "When self-improving agents distill successful trajectories into reusable skills, compromised experience causes \"skill misevolution\": across 25 agent-method configurations, all 21 evolved configurations authored unsafe artifacts (15 caused fresh-session harm), and exposure to just three malicious tasks raised carryover attack success from 16.0% to 35.3%. Ships SkillMisevo-Gym, SkillMisevo-Bench, and SafeEvolve, a wrapper cutting unsafe retrieval by 26.7pp and fresh-session harm by 17.3pp at ~0.4pp benign-utility cost. Code released.",
+      why: "The skill-contamination thread now has a systematic benchmark — persistent-adaptation safety must govern what updates write and what future executors reuse." },
+    { topic: "Agentic RL", title: "Spark-to-Paper: end-to-end paper generation as thirteen composable skills, with integrity checks", url: "https://arxiv.org/abs/2608.11924", type: "paper", date: "2026-08-12", stars: 3,
+      summary: "Implements idea-to-manuscript generation as thirteen composable skills inside an existing coding assistant — no separate agent platform — separating human judgment from deterministically checkable operations and experiment planning from reporting. Deterministic integrity checks plus adversarial self-critique detect a named failure mode (\"Self-Refutation Loop\") and raise fabrication detection from 14% (single pass) to 92%; 99.5% citation validity, 96.4% figure editability, $8.1 and 3.2 hours per manuscript. HF 277 upvotes, top of the batch.",
+      why: "The autonomous-research thread's sharpest engineering statement yet that integrity is a harness property — checkable skills plus adversarial review — rather than a model property." },
+    { topic: "Agentic RL", title: "CrEST: teach the magnitude, not the direction — verifier-bounded credit for multi-turn agents", url: "https://arxiv.org/abs/2608.13179", type: "paper", date: "2026-08-13", stars: 3,
+      summary: "Combines RLVR's verifier-bounded ceiling with distillation's dense signal via hierarchical credit assignment: turn-segmented verified advantages, plus entropy-gated self-teacher modulation where the teacher sets the strength of updates while verified outcomes set the direction. Consistent gains over RL and distillation baselines on BFCL V3 and WildToolBench, largest on long trajectories and strict session-level metrics.",
+      why: "The magnitude/direction decomposition is a new gate construction for the selective-guidance family — teacher signal demoted from target-setter to step-size controller." },
+    { topic: "Multimodal/VLM", title: "Qwen3.8-27B model card resolved: a dense hybrid-attention VLM, not MoE", url: "https://huggingface.co/Qwen/Qwen3.8-27B", type: "release", date: "2026-08-14", stars: 3,
+      summary: "The open questions from the 08-14 scan are settled: Qwen3.8-27B is a dense 27.78B model (not MoE) with a hybrid decoder — 48 Gated DeltaNet linear-attention layers plus 16 full-attention layers — and native multimodal input (text/image/video) via a 27-layer vision encoder. 262K native context (1M via YaRN), Apache 2.0. Vs Qwen3.6-27B: +9.6 Terminal-Bench, +8.2 SWE-bench Pro, +28.9 DeepSWE, +20.4 OSWorld; still trails Opus 4.8/GPT-5.6 on hard tasks.",
+      why: "The strongest local-class open VLM is a dense DeltaNet hybrid — the Qwen3.8 lineage splits its architecture by scale, and the 08-14 MoE label is corrected." },
+    { topic: "Multimodal/VLM", title: "PlayWorld: agent players replace fixed action scripts for judging world models", url: "https://arxiv.org/abs/2608.13552", type: "paper", date: "2026-08-13", stars: 3,
+      summary: "Benchmarks nine interactive video world models with multimodal agent players pursuing 171 long-horizon objectives (e.g., rotate 360° and check consistency, test water physics) instead of predetermined action sequences, scored on geometry consistency, interaction fidelity, out-of-sight evolution, and insight evolution. Current models remain unreliable on long-horizon objectives, especially spatial consistency and persistent state. HF 38 upvotes.",
+      why: "Agent-in-the-loop evaluation reaches world models — the eval-validity movement's answer to cherry-picked rollout demos." },
+    { topic: "Self-Evolving", title: "AutoDesign: a meta-harness that recursively rewrites its own design harness", url: "https://arxiv.org/abs/2608.13560", type: "paper", date: "2026-08-13", stars: 3,
+      summary: "Frames structured media generation (paper-to-poster) as a long-horizon model-harness process and adds a meta-harness optimizer that guides a code agent to recursively refine learned design guidelines and procedures from empirical feedback. PosterBench Main Track 78.32, +7.45 over a commercial system; integrating the learned harness lifts average performance 54.99→67.39; full autonomous loops run 253 tool calls in 40 minutes under $3, reaching average conference-poster quality in human eval. HF 39 upvotes.",
+      why: "The harness-evolution thread gets a concrete production-shaped win — the harness, not the model, as the self-improving artifact." },
+    { topic: "Post-training", title: "GPT-5.6 Sol Ultrafast: the full frontier model at 750 tok/s on Cerebras", url: "https://openai.com/index/previewing-ultrafast/", type: "release", date: "2026-08-13", stars: 2,
+      summary: "OpenAI previews \"Ultrafast mode\" for GPT-5.6 Sol, served on Cerebras wafer-scale hardware at up to 750 tokens/s — up to 14× the standard serving speed of the same, unmodified model. No pricing or GA date announced. First public instance of OpenAI running a flagship on non-NVIDIA silicon at production scale.",
+      why: "Token-generation speed is emerging as its own competitive axis — and reasoning-heavy agentic workflows are the obvious beneficiary of an order-of-magnitude serving speedup at unchanged capability." },
+    { topic: "Self-Evolving", title: "SkillEvo: multi-turn simulated users keep the skill-evolution gradient alive", url: "https://arxiv.org/abs/2608.13120", type: "paper", date: "2026-08-13", stars: 2,
+      summary: "Argues skill self-improvement plateaus because feedback comes from single-turn QA evaluation; SkillEvo generates ongoing feedback via multi-turn user simulation with layer-by-layer defect exposure, plus an independent governance layer that repairs factual degradation and prevents quality drift. Beats self-reflection-based evolution by 23.0 points and single-turn-QA-driven evolution by 15.4 across six cloud-service categories, nine production skills, 98 skill-reference files.",
+      why: "Sustained skill improvement needs richer feedback channels — and the separate governance layer applies the gate-the-commit instinct to quality drift rather than safety." },
+    { topic: "AI Safety", title: "Rules or Character? A formal resource-allocation model for safety design", url: "https://arxiv.org/abs/2608.13345", type: "paper", date: "2026-08-13", stars: 2,
+      summary: "Models the split between character shaping (training-time: RLHF/Constitutional AI) and rule enforcement (inference-time filtering) as a resource-allocation parameter α, with filter degradation, common-mode failures, and character fragility; Monte Carlo over a multiplicative Pareto damage model. Scale shifts the optimum modestly toward character (+0.01 to +0.21 by scenario), but baseline character fragility under distributional shift dominates everything else (moves α* by 0.50).",
+      why: "A quantitative frame for the character-vs-filters debate — locating the decisive empirical unknown (character robustness under shift) rather than adjudicating the ideology." },
+    { topic: "AI Safety", title: "Google open-sources HEIR: a compiler for AI inference on encrypted data", url: "https://aiweekly.co/ai-news-today", type: "release", date: "2026-08-15", stars: 2,
+      summary: "Google released HEIR, an open-source compiler stack that lets AI inference run on homomorphically encrypted data — the server computes without access to the underlying plaintext. Lands the same week researchers publicized that \"encrypted\" reasoning traces across major providers were interchangeable and readable.",
+      why: "Provider-side encrypted inference is the infrastructure answer to the reasoning-trace-leak episode — moving confidentiality from policy promises into the compute substrate." },
+    { topic: "MoE", title: "The Evolution of MoE Architectures: a dependency-graph survey of the modern design space", url: "https://arxiv.org/abs/2608.08650", type: "paper", date: "2026-08-09", stars: 2,
+      summary: "Organizes modern MoE systems across five dimensions (expert granularity, topology, routing freedom, load-balancing scope, execution structure) and maps eight architectural milestones as a dependency graph — six mainline developments, two orthogonal branches — connecting algorithmic choices to systems concerns (token dispatch, device placement, communication-computation overlap). Backfilled this round.",
+      why: "The first survey organized around the decoupling of semantic routing from computational budgets from physical execution — a usable map for where routing research is headed." },
+    { topic: "OPD", title: "Woodpecker Distillation: weak models diagnose reasoning bugs in strong models", url: "https://arxiv.org/abs/2608.05168", type: "paper", date: "2026-08-05", stars: 2,
+      summary: "[project-related] Constructs corrective instruction by analyzing how weak-model patches shift continuations at strong-model prefixes, bypassing direct imitation — a weak-to-strong signal-construction recipe in the W2S-OPD lineage. (Title-level this round; details to backfill.)",
+      why: "The \"distill the delta, not the distribution\" family keeps growing — raw strong-teacher imitation is being abandoned as the default." },
+    { topic: "OPD", title: "DASH: divergence-adaptive supervision horizons for on-policy self-distillation", url: "https://arxiv.org/abs/2608.06243", type: "paper", date: "2026-08-06", stars: 2,
+      summary: "[project-related] Uses backward multi-step divergence-gap aggregation to restore the order dependence that uniform token weighting discards — the supervision horizon adapted per position by measured divergence. (Title-level this round; details to backfill.)",
+      why: "A horizon-axis gate for the selective-guidance family — supervision extent, not just supervision strength, as the gated quantity." }
+  ]
+};
+// ===== End of data block =====
+
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const colorOf = t => css((REPORT.topics.find(x => x.name === t) || {color:"--muted"}).color);
+
+document.getElementById("subtitle").textContent =
+  "Overnight summary · " + REPORT.date + " · " + REPORT.note;
+
+const byTopic = {};
+REPORT.topics.forEach(t => byTopic[t.name] = 0);
+REPORT.findings.forEach(f => byTopic[f.topic] = (byTopic[f.topic] || 0) + 1);
+const papers = REPORT.findings.filter(f => f.type === "paper").length;
+
+document.getElementById("tiles").innerHTML = [
+  { v: REPORT.findings.length, k: "total findings" },
+  { v: papers, k: "papers" },
+  { v: REPORT.findings.length - papers, k: "blogs / discussions" },
+  { v: REPORT.runs.length, k: "overnight runs" }
+].map(t => `<div class="tile"><div class="v">${t.v}</div><div class="k">${t.k}</div></div>`).join("");
+
+document.getElementById("tldr").innerHTML =
+  REPORT.tldr.map(t => `<li>${t}</li>`).join("");
+
+const maxN = Math.max(...Object.values(byTopic), 1);
+document.getElementById("topicbars").innerHTML = REPORT.topics.map(t => `
+  <div class="barrow">
+    <span class="lab">${t.name}</span>
+    <div class="bartrack"><div class="bar" style="width:${(byTopic[t.name]/maxN)*100}%;background:${css(t.color)}"></div></div>
+    <span class="num">${byTopic[t.name]}</span>
+  </div>`).join("");
+
+let active = "All";
+function renderFilters() {
+  document.getElementById("filters").innerHTML =
+    [`<button class="chip ${active==="All"?"active":""}" onclick="setTopic('All')">All</button>`]
+    .concat(REPORT.topics.map(t =>
+      `<button class="chip ${active===t.name?"active":""}" onclick="setTopic('${t.name}')">
+         <span class="dot" style="background:${css(t.color)}"></span>${t.name} (${byTopic[t.name]})</button>`)).join("");
+}
+function renderCards() {
+  const list = REPORT.findings
+    .filter(f => active === "All" || f.topic === active)
+    .slice().sort((a,b) => b.stars - a.stars);
+  document.getElementById("cards").innerHTML = list.map(f => `
+    <div class="card" style="border-left-color:${colorOf(f.topic)}">
+      <div class="top">
+        <h3><a href="${f.url}" target="_blank" rel="noopener">${f.title}</a></h3>
+        <span class="stars" title="importance ${f.stars}/5">${"★".repeat(f.stars)}${"☆".repeat(5-f.stars)}</span>
+      </div>
+      <div class="meta"><span class="tag">${f.topic}</span><span>${f.type}</span><span>${f.date}</span></div>
+      <p>${f.summary}</p>
+      <div class="why"><b>Why it matters:</b> ${f.why}</div>
+    </div>`).join("");
+}
+function setTopic(t) { active = t; renderFilters(); renderCards(); }
+renderFilters(); renderCards();
+
+document.getElementById("foot").textContent =
+  "autoResearch_AI · paper scan 7:00 AM · daily report 9:00 AM (US Central) · full archives in the autoResearch_AI project (claude/daily/)";
+</script>
+</body>
+</html>

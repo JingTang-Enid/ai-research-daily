@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Research Daily</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7; --surface: #fcfcfb;
+    --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+    --grid: #e1e0d9; --border: rgba(11,11,11,0.10);
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7;
+    --chip-bg: #f0efec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page: #0d0d0d; --surface: #1a1a19;
+      --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+      --grid: #2c2c2a; --border: rgba(255,255,255,0.10);
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9;
+      --chip-bg: #383835;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page); color: var(--ink);
+    padding: 28px 20px 60px; max-width: 980px; margin: 0 auto;
+  }
+  nav { display: flex; gap: 16px; align-items: center; margin-bottom: 18px; font-size: 13px; flex-wrap: wrap; }
+  nav .brand { font-weight: 700; }
+  nav a { text-decoration: none; color: var(--muted); }
+  nav a.active { color: var(--ink); font-weight: 600; }
+  header { margin-bottom: 22px; }
+  h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+  .sub { color: var(--ink-2); font-size: 13.5px; margin-top: 5px; line-height: 1.5; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 20px 0; }
+  .tile { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .tile .v { font-size: 26px; font-weight: 700; }
+  .tile .k { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; margin-bottom: 18px; }
+  .panel h2 { font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: 12px; }
+  .barrow { display: grid; grid-template-columns: 150px 1fr 30px; align-items: center; gap: 10px; margin: 7px 0; font-size: 12.5px; }
+  .barrow .lab { color: var(--ink-2); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bartrack { height: 14px; position: relative; }
+  .bar { height: 14px; border-radius: 0 4px 4px 0; }
+  .barrow .num { font-variant-numeric: tabular-nums; color: var(--ink-2); }
+  .tldr li { margin: 8px 0 8px 0; line-height: 1.55; font-size: 13.5px; color: var(--ink); }
+  .tldr { padding-left: 18px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 14px; }
+  .chip {
+    border: 1px solid var(--border); background: var(--chip-bg); color: var(--ink-2);
+    border-radius: 999px; padding: 6px 13px; font-size: 12.5px; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  .chip .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .chip.active { background: var(--ink); color: var(--page); border-color: var(--ink); }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; margin-bottom: 10px; border-left: 4px solid var(--grid);
+  }
+  .card .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .card h3 { font-size: 14.5px; font-weight: 600; line-height: 1.4; }
+  .card h3 a { color: inherit; text-decoration: none; }
+  .card h3 a:hover { text-decoration: underline; }
+  .meta { font-size: 11.5px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  .stars { color: var(--s4); font-size: 12px; letter-spacing: 1px; white-space: nowrap; }
+  .card p { font-size: 13px; color: var(--ink-2); line-height: 1.55; margin-top: 8px; }
+  .why { font-size: 12.5px; margin-top: 7px; color: var(--ink); }
+  .why b { font-weight: 600; }
+  .tag { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--chip-bg); color: var(--ink-2); }
+  footer { margin-top: 26px; font-size: 12px; color: var(--muted); line-height: 1.6; }
+</style>
+</head>
+<body>
+<nav>
+  <span class="brand">autoResearch_AI</span>
+  <a href="../" class="active">Daily Report</a>
+  <a href="../nightly/">Paper Scan</a>
+</nav>
+<header>
+  <h1>AI Research Daily</h1>
+  <div class="sub" id="subtitle"></div>
+</header>
+
+<div class="tiles" id="tiles"></div>
+
+<div class="panel">
+  <h2>TL;DR — Top picks today</h2>
+  <ul class="tldr" id="tldr"></ul>
+</div>
+
+<div class="panel">
+  <h2>Findings by topic</h2>
+  <div id="topicbars"></div>
+</div>
+
+<div class="filters" id="filters"></div>
+<div id="cards"></div>
+
+<footer id="foot"></footer>
+
+<script>
+// ===== Replaced daily by the morning-report agent. ALL content in English. =====
+const REPORT = {
+  date: "2026-08-11",
+  note: "Paper scan: 15 items across 7 topics (fetch mostly restored; Monday arXiv batch covering Fri–Mon, plus 3 backfills cleared)",
+  runs: ["Paper scan 07:00 (15 items)"],
+  tldr: [
+    "★4 [project-related] The Monday batch delivered a three-paper OPD cluster: TIDE (2608.09836) shows students game token agreement via repetitive loops and fixes both mismatch classes with bounded Hellinger shaping + analytic teacher top-K injection (Qwen3 math Avg@8 6.9%→20.3%); \"Privileged Likelihood Is Not Automatically Value\" (2608.09263, Salesforce) shows token-credit scores in on-policy self-distillation can be near chance (AUC .505) while still moving benchmarks; FutureBridge-OPD (2608.01953) validates teacher guidance by rolling out the student's future trajectory before distilling (+16.6 over vanilla OPD).",
+    "★4 Anthropic published the Riemann-zeta result: an unreleased Claude research version raised the lower bound on zeta zeros satisfying RH from 41.6% to 67.2% — 60 coordinated subagents, 31M output tokens, ~650 failed ideas, Lean-formalized and verified by outside experts. The strongest verified instance yet of agentic scaffolding producing a novel mathematical result.",
+    "★4 OpenAI answered the Astra pause with GPT-5.6-Cyber + tiered Daybreak access: an offensive-security model rated \"High\" but below the \"Critical\" threshold that paused Astra, gated behind identity-verified Red/Blue tiers — the first productized instance of capability-tiered model access.",
+    "★4 Meta released Muse Glimmer: a 30B dense (deliberately not MoE) Apache-2.0 open-weights multimodal agent model built for one consumer GPU — 131K+ context, 24GB-VRAM K-quant at 1.0% degradation, leading local-class models on MCP Atlas and SWE-Bench Pro — landing squarely in the slot where Qwen3.8-27B keeps failing to appear.",
+    "★3 Token-level credit is the cross-cutting question of the batch: Se-DPO (2608.09568) puts self-evolving token credit inside DPO (+9.8 AlpacaEval 2), BCSD (2608.09555) derives dense signals from privileged context views, DiDPO (2608.07147) assigns advantage at the sub-diff level — while 2608.09263 shows exactly such credit schemes need separate validation of meaning, construction, and training effect."
+  ],
+  topics: [
+    { name: "Post-training", color: "--s1" },
+    { name: "OPD", color: "--s2" },
+    { name: "AI Safety", color: "--s3" },
+    { name: "Agentic RL", color: "--s4" },
+    { name: "Self-Evolving", color: "--s5" },
+    { name: "Multimodal/VLM", color: "--s6" },
+    { name: "MoE", color: "--s7" }
+  ],
+  findings: [
+    { topic: "OPD", title: "TIDE — Mismatch Matters: On-Policy Distillation Beyond Token Agreement", url: "https://arxiv.org/abs/2608.09836", type: "paper", date: "2026-08-10", stars: 4,
+      summary: "[project-related] Yu et al. expose a failure mode of on-policy distillation: students exploit repetitive loops to achieve near-perfect token agreement with the teacher despite globally flawed responses. TIDE corrects two mismatch classes independently — student-excess tokens are suppressed with bounded Hellinger shaping, and student-deficit tokens get analytic teacher top-K probability-mass injection without needing to be sampled. Qwen3 math under strong mismatch: Avg@8 6.9%→20.3%, response length cut 3.6×; code released.",
+      why: "A mechanism-level account of how on-policy distillation degrades under distribution mismatch — complementary to the capacity-gap axis, and the token-agreement-gaming pathology belongs next to the KL Agreement Trap in any OPD failure-modes discussion." },
+    { topic: "OPD", title: "Privileged Likelihood Is Not Automatically Value: three checks for token credit in on-policy self-distillation", url: "https://arxiv.org/abs/2608.09263", type: "paper", date: "2026-08-10", stars: 3,
+      summary: "[project-related] Nguyen et al. (Salesforce) argue a token-likelihood change under privileged (training-only) information is not automatically outcome credit, formalizing three validity checks: do scores track better actions, does feedback construction bias comparisons, and what does the loss actually reinforce. On a 20B model with AIME-2025: hindsight feedback induces self-dependence, the implemented additive token score is near chance (AUC .505), and token-score variants (24.2–33.9%) substantially underperform an outcome-only baseline (64.2%).",
+      why: "A cautionary negative result for the whole selective-guidance/token-gating family: token-credit mechanisms need separate validation of meaning, construction, and training effect — support for trajectory-level over token-level signals." },
+    { topic: "OPD", title: "FutureBridge-OPD: look ahead before you distill — future-trajectory validation of teacher guidance", url: "https://arxiv.org/abs/2608.01953", type: "paper", date: "2026-08-03", stars: 3,
+      summary: "[project-related] Chen et al. target multi-turn agentic OPD, where student deviations accumulate until the trajectory leaves the region where teacher guidance helps. At high-disagreement states, a short teacher \"bridge\" is executed, then the student's continuation is rolled out to test whether the bridge actually increases the density of positive distillation signals — only validated bridges are distilled. Qwen3-32B→1.7B on ALFWorld/WebShop/ScienceWorld: +16.6 over vanilla OPD, +7.6 over TCOD.",
+      why: "Empirical look-ahead validation of when teacher intervention helps — a rollout-based answer to the \"when does OPD help\" prediction problem, in the agentic setting at a large capacity gap." },
+    { topic: "OPD", title: "OPTD: on-policy transition distillation for few-step diffusion language models", url: "https://arxiv.org/abs/2608.02942", type: "paper", date: "2026-08-03", stars: 2,
+      summary: "Lu et al. accelerate diffusion LM decoding by compressing multiple teacher denoising steps into single student transitions, fixing the train/inference mismatch by sampling partial states from the student's own trajectories; a frozen teacher proposes future token candidates and consistency-guided adaptive compression selects the longest outcome-preserving prefix. Best quality-constrained AUP among few-step baselines across four math/code benchmarks. (Backfill cleared on third attempt.)",
+      why: "Confirms the on-policy correction transfers to the diffusion-LM regime — the OPD recipe keeps spreading across generation paradigms." },
+    { topic: "Post-training", title: "Se-DPO: self-evolving token credit for DPO (COLM 2026)", url: "https://arxiv.org/abs/2608.09568", type: "paper", date: "2026-08-10", stars: 3,
+      summary: "Zhao, Wang, Wu replace DPO's uniform summation of token log-probability ratios with dynamic token credit derived from the model's own evolving internal signals — credit proportional to each token's implicit-reward magnitude, calibrated per position by a lightweight calibration network, no external models. +9.8 AlpacaEval 2, +12.2 Arena-Hard over DPO.",
+      why: "Token-level credit inside DPO converges with the question the OPD token-gating papers are asking — which positions carry the signal — though per 2608.09263 in this same batch, such credit schemes now face a higher validation bar." },
+    { topic: "AI Safety", title: "OpenAI launches GPT-5.6-Cyber behind identity-verified Daybreak Red/Blue tiers", url: "https://the-decoder.com/openai-launches-gpt-5-6-cyber-to-help-defenders-find-vulnerabilities-before-attackers-do/", type: "release", date: "2026-08-10", stars: 4,
+      summary: "OpenAI expanded its Daybreak security program with GPT-5.6-Cyber, a GPT-5.6-Sol-based model trained for offensive security (zero-day discovery, exploit chains) — answering 95% of sensitive security queries vs 1.5% for stock Sol, with two unknown Chrome vulnerabilities and ≥5 in a popular mobile OS already found. Access is tiered: Daybreak Blue (defensive) and Daybreak Red (offensive), both requiring identity verification and legal declarations, hardware security keys mandatory from 09-01. Rated \"High\" but not \"Critical\" on the Preparedness scale.",
+      why: "The first productized instance of capability-tiered, identity-gated model access — OpenAI's concrete answer to threshold-based gating, released three days after the Astra pause made the threshold real." },
+    { topic: "AI Safety", title: "Measuring the Wrong Thing: internal harmfulness scores anti-rank successful jailbreaks", url: "https://arxiv.org/abs/2608.09624", type: "paper", date: "2026-08-10", stars: 3,
+      summary: "Luo et al. show internal safety probes validated on harmful-vs-benign discrimination fail on what matters: harmful intent is a property of the prompt, jailbreak success an outcome produced later. With paired plain/wrapped prompts, wrapping raises Llama's harmful-generation rate .05→.27 while probe AUROC drops only 0.936→0.803 — and among successful jailbreaks, outcome AUROC is 0.220: probes rank succeeding attacks below failing ones. Holds across 3 models, 7 attack families, 2 judges.",
+      why: "A measurement-validity failure at the core of interpretability-based safety monitoring — the probes are confidently anti-correlated exactly where they are needed." },
+    { topic: "AI Safety", title: "SHE: trajectory-driven safety harness evolution for LLM agents", url: "https://arxiv.org/abs/2608.09885", type: "paper", date: "2026-08-10", stars: 3,
+      summary: "Qu et al. (Shanghai AI Lab et al.) treat agent safety as a property of the harness, not just weights — decomposing it into System Prompt, Rule Bank, Safety Memory, and Tool Policy, then running an attribution-guided loop that converts trajectory failures into structured diagnoses and evolves the responsible component. 3.1× attack-success-rate reduction vs static SafeHarness on Agent-SafetyBench, improved benign utility, generalizes to unseen risks and transfers across agent models.",
+      why: "Merges the month's two dominant threads — capability lives in the harness, and the harness is the safety failure point — into a trainable loop where the safety scaffold itself becomes the evolving, attributable artifact." },
+    { topic: "Agentic RL", title: "Anthropic: unreleased Claude raises the Riemann-zeta critical-line lower bound from 41.6% to 67.2%", url: "https://www.anthropic.com/research/riemann-zeta", type: "blog", date: "2026-08-10", stars: 4,
+      summary: "Asked to attempt the Riemann hypothesis, an unreleased Claude research version instead proved a related advance: raising the lower bound on the fraction of zeta zeros on the critical line from 41.6% (the ~35-year-old benchmark) to 67.2%, combining Baluyot–Goldston–Suriajaya–Turnage-Butterbaugh with Bombieri's 2000 quadratic-form work. Harness: two Claude Code sessions, 31M output tokens, 60 coordinated subagents, ~2,400 shell commands, ~650 failed ideas before the day-and-a-half breakthrough. Verified by two Anthropic mathematicians, formalized in Lean, examined by Conrey and Goldston.",
+      why: "The strongest verified instance yet of agentic scaffolding producing a genuinely novel, expert-checked mathematical result — a concrete datapoint that the subagent-fleet harness, not just the base model, is the unit of scientific capability." },
+    { topic: "Agentic RL", title: "DiDPO: diff-level credit units for coding-agent RL", url: "https://arxiv.org/abs/2608.07147", type: "paper", date: "2026-08-07", stars: 3,
+      summary: "Wang et al. — the \"diff-in-diff\" is structural, not econometric: complete code changes are decomposed into semantically meaningful sub-diffs, grouped by a groupability score balancing semantic scope against cohesion, and per-sub-diff advantages are projected back onto the specific response tokens that produced them. Qwen2.5-7B-Coder: >10% over comparable methods, strong on long-horizon coding tasks. Ships verl-code, an open framework for coding-agent RL. (Backfilled with real mechanism this round.)",
+      why: "The most granular structural credit assignment yet in the coding-agent thread — advantage at the sub-diff level rather than trajectory/turn/token — with an open harness as a usable baseline." },
+    { topic: "Agentic RL", title: "BCSD: bidirectional context self-distillation for skill-based LLM agents", url: "https://arxiv.org/abs/2608.09555", type: "paper", date: "2026-08-10", stars: 3,
+      summary: "Pan et al. (Alibaba) train agents to use external natural-language skills effectively: trajectories are re-evaluated under an augmented view (with higher-level Meta-Skill guidance) and a reduced view (general instructions removed), and the two token-level signals adjust RL advantages. Beats baselines on ALFWorld/WebShop across model scales; both views contribute in ablations.",
+      why: "Self-distillation across context views — with and without privileged skill guidance — as a dense training signal: the same privileged-information construction as the OPD gating papers, applied to the skill-library thread." },
+    { topic: "Self-Evolving", title: "OEO: do self-evolving agents still need prescribed optimization pipelines?", url: "https://arxiv.org/abs/2608.09629", type: "paper", date: "2026-08-10", stars: 3,
+      summary: "Xue & Yang let the optimizer compose its own improvement process online (Open-Ended Optimization) — objectives, budgets, and evaluation fixed, but no prescribed pipeline — against SkillOpt and GEPA across 14 comparisons / 8 settings. GPT-4.5-driven OEO: 12 wins, 1 tie, 1 narrow loss, at a median 34.3% of SkillOpt's token budget. But with medium-capability optimizers, SkillOpt wins.",
+      why: "A clean scaling-with-optimizer-capability result: prescribed pipelines are capability-dependent scaffolding — training wheels that frontier optimizers no longer need." },
+    { topic: "Self-Evolving", title: "Agent Memory Distillation: hierarchical teacher memory for small LLM agents", url: "https://arxiv.org/abs/2608.07169", type: "paper", date: "2026-08-07", stars: 3,
+      summary: "[project-related] Kim, Kim, Hwang (KAIST) — training-free distillation where the payload is structured teacher memory from successful trajectories: Workflow memory (task-level strategies) and Subtask memory (behavioral examples) injected at task start, Function memory (calling conventions, common errors) retrieved on tool errors. GPT-5-mini teacher: +27.2 AppWorld, +11.2 BFCL V3, +3.4 ToolSandbox; 4B students benefit more than 8B, and teacher effectiveness depends on teacher-student compatibility, not just capability. (Backfilled with full mechanism.)",
+      why: "The \"transfer what the teacher learned, not how it tokenizes\" alternative to weight-space distillation, now with mechanism and numbers — including its own compatibility (gap) dependence." },
+    { topic: "Multimodal/VLM", title: "Meta releases Muse Glimmer: 30B dense open-weights multimodal agent model for one consumer GPU", url: "https://huggingface.co/blog/muse-glimmer", type: "release", date: "2026-08-10", stars: 4,
+      summary: "Meta Superintelligence Labs shipped Muse Glimmer, Apache 2.0: a 30B dense causal transformer (deliberately not MoE) with a ~1.8B ViT-G/14 vision tower, GQA, [Local×3, Global] attention with a 2,048 sliding window, 131K+ context, 202K vocab. Text+image in, text out. K-quant builds hit 24GB VRAM at 1.0% degradation, with 3.1× decode speedup on an RTX 5090 via 16-token block speculation. Leads local-class models on MCP Atlas (75.5), DeepSearch QA (74.6), SWE-Bench Pro (51.2); trails Qwen3.6-27B on OSWorld-Verified.",
+      why: "Meta's open-weights answer to the on-device agent race — a deliberately dense, quantization-first multimodal design landing squarely against Qwen's 27B line, making Qwen3.8-27B's continued absence (day 8, deadline slipped) more conspicuous." },
+    { topic: "MoE", title: "EntropyMoE: entropy-aware sparse expert routing for tokenizer-free (byte-level) LLMs", url: "https://arxiv.org/html/2608.06398", type: "paper", date: "2026-08-06", stars: 3,
+      summary: "Liu et al. bring MoE to Byte Latent Transformer architectures with the dynamic patch as the routing unit: dense FFNs become Top-2 expert layers routed by scalar patch entropy alone — a learned affine map, 400 parameters total across 25 layers, instead of hidden-state routers — with patch length weighting the load-balancing auxiliary. Lowest bits-per-byte among tested configs (0.8351 vs 0.8442 dense), +1.16pp HellaSwag, 1000× fewer router parameters and 8.6% faster iterations, though the sparse implementation still runs ~2× slower than dense end-to-end.",
+      why: "A genuinely different answer to what the router should read: a task-native scalar (patch entropy) instead of learned hidden-state projections — in byte-level models, routing signal and patching signal can be the same quantity." }
+  ]
+};
+// ===== End of data block =====
+
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const colorOf = t => css((REPORT.topics.find(x => x.name === t) || {color:"--muted"}).color);
+
+document.getElementById("subtitle").textContent =
+  "Overnight summary · " + REPORT.date + " · " + REPORT.note;
+
+const byTopic = {};
+REPORT.topics.forEach(t => byTopic[t.name] = 0);
+REPORT.findings.forEach(f => byTopic[f.topic] = (byTopic[f.topic] || 0) + 1);
+const papers = REPORT.findings.filter(f => f.type === "paper").length;
+
+document.getElementById("tiles").innerHTML = [
+  { v: REPORT.findings.length, k: "total findings" },
+  { v: papers, k: "papers" },
+  { v: REPORT.findings.length - papers, k: "blogs / discussions" },
+  { v: REPORT.runs.length, k: "overnight runs" }
+].map(t => `<div class="tile"><div class="v">${t.v}</div><div class="k">${t.k}</div></div>`).join("");
+
+document.getElementById("tldr").innerHTML =
+  REPORT.tldr.map(t => `<li>${t}</li>`).join("");
+
+const maxN = Math.max(...Object.values(byTopic), 1);
+document.getElementById("topicbars").innerHTML = REPORT.topics.map(t => `
+  <div class="barrow">
+    <span class="lab">${t.name}</span>
+    <div class="bartrack"><div class="bar" style="width:${(byTopic[t.name]/maxN)*100}%;background:${css(t.color)}"></div></div>
+    <span class="num">${byTopic[t.name]}</span>
+  </div>`).join("");
+
+let active = "All";
+function renderFilters() {
+  document.getElementById("filters").innerHTML =
+    [`<button class="chip ${active==="All"?"active":""}" onclick="setTopic('All')">All</button>`]
+    .concat(REPORT.topics.map(t =>
+      `<button class="chip ${active===t.name?"active":""}" onclick="setTopic('${t.name}')">
+         <span class="dot" style="background:${css(t.color)}"></span>${t.name} (${byTopic[t.name]})</button>`)).join("");
+}
+function renderCards() {
+  const list = REPORT.findings
+    .filter(f => active === "All" || f.topic === active)
+    .slice().sort((a,b) => b.stars - a.stars);
+  document.getElementById("cards").innerHTML = list.map(f => `
+    <div class="card" style="border-left-color:${colorOf(f.topic)}">
+      <div class="top">
+        <h3><a href="${f.url}" target="_blank" rel="noopener">${f.title}</a></h3>
+        <span class="stars" title="importance ${f.stars}/5">${"★".repeat(f.stars)}${"☆".repeat(5-f.stars)}</span>
+      </div>
+      <div class="meta"><span class="tag">${f.topic}</span><span>${f.type}</span><span>${f.date}</span></div>
+      <p>${f.summary}</p>
+      <div class="why"><b>Why it matters:</b> ${f.why}</div>
+    </div>`).join("");
+}
+function setTopic(t) { active = t; renderFilters(); renderCards(); }
+renderFilters(); renderCards();
+
+document.getElementById("foot").textContent =
+  "autoResearch_AI · paper scan 7:00 AM · daily report 9:00 AM (US Central) · full archives in the autoResearch_AI project (claude/daily/)";
+</script>
+</body>
+</html>

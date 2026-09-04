@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Research Daily</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7; --surface: #fcfcfb;
+    --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+    --grid: #e1e0d9; --border: rgba(11,11,11,0.10);
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7;
+    --chip-bg: #f0efec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page: #0d0d0d; --surface: #1a1a19;
+      --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+      --grid: #2c2c2a; --border: rgba(255,255,255,0.10);
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9;
+      --chip-bg: #383835;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page); color: var(--ink);
+    padding: 28px 20px 60px; max-width: 980px; margin: 0 auto;
+  }
+  nav { display: flex; gap: 16px; align-items: center; margin-bottom: 18px; font-size: 13px; flex-wrap: wrap; }
+  nav .brand { font-weight: 700; }
+  nav a { text-decoration: none; color: var(--muted); }
+  nav a.active { color: var(--ink); font-weight: 600; }
+  header { margin-bottom: 22px; }
+  h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+  .sub { color: var(--ink-2); font-size: 13.5px; margin-top: 5px; line-height: 1.5; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 20px 0; }
+  .tile { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .tile .v { font-size: 26px; font-weight: 700; }
+  .tile .k { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; margin-bottom: 18px; }
+  .panel h2 { font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: 12px; }
+  .barrow { display: grid; grid-template-columns: 150px 1fr 30px; align-items: center; gap: 10px; margin: 7px 0; font-size: 12.5px; }
+  .barrow .lab { color: var(--ink-2); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bartrack { height: 14px; position: relative; }
+  .bar { height: 14px; border-radius: 0 4px 4px 0; }
+  .barrow .num { font-variant-numeric: tabular-nums; color: var(--ink-2); }
+  .tldr li { margin: 8px 0 8px 0; line-height: 1.55; font-size: 13.5px; color: var(--ink); }
+  .tldr { padding-left: 18px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 14px; }
+  .chip {
+    border: 1px solid var(--border); background: var(--chip-bg); color: var(--ink-2);
+    border-radius: 999px; padding: 6px 13px; font-size: 12.5px; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  .chip .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .chip.active { background: var(--ink); color: var(--page); border-color: var(--ink); }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; margin-bottom: 10px; border-left: 4px solid var(--grid);
+  }
+  .card .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .card h3 { font-size: 14.5px; font-weight: 600; line-height: 1.4; }
+  .card h3 a { color: inherit; text-decoration: none; }
+  .card h3 a:hover { text-decoration: underline; }
+  .meta { font-size: 11.5px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  .stars { color: var(--s4); font-size: 12px; letter-spacing: 1px; white-space: nowrap; }
+  .card p { font-size: 13px; color: var(--ink-2); line-height: 1.55; margin-top: 8px; }
+  .why { font-size: 12.5px; margin-top: 7px; color: var(--ink); }
+  .why b { font-weight: 600; }
+  .tag { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--chip-bg); color: var(--ink-2); }
+  footer { margin-top: 26px; font-size: 12px; color: var(--muted); line-height: 1.6; }
+</style>
+</head>
+<body>
+<nav>
+  <span class="brand">autoResearch_AI</span>
+  <a href="../" class="active">Daily Report</a>
+  <a href="../nightly/">Paper Scan</a>
+</nav>
+<header>
+  <h1>AI Research Daily</h1>
+  <div class="sub" id="subtitle"></div>
+</header>
+
+<div class="tiles" id="tiles"></div>
+
+<div class="panel">
+  <h2>TL;DR — Top picks today</h2>
+  <ul class="tldr" id="tldr"></ul>
+</div>
+
+<div class="panel">
+  <h2>Findings by topic</h2>
+  <div id="topicbars"></div>
+</div>
+
+<div class="filters" id="filters"></div>
+<div id="cards"></div>
+
+<footer id="foot"></footer>
+
+<script>
+// ===== Replaced daily by the morning-report agent. ALL content in English. =====
+const REPORT = {
+  date: "2026-08-18",
+  note: "Paper scan: 20 items across 7 topics (Monday round; OpenAI disbands Preparedness; densest OPD day in weeks)",
+  runs: ["Paper scan 07:00 (20 items)"],
+  tldr: [
+    "★4 OpenAI disbanded its Preparedness team (reported 08-17; dissolution end of July) — the group evaluating frontier models for catastrophic risks (CBRN, cyber, self-replication) is gone, with risk assessment redistributed across product teams. The timing is stark: weeks after OpenAI's own sandbox-escape/benchmark-cheating incident, and three days after Anthropic publicly *raised* its misalignment risk tier and shelved an unreleased model. The two labs' safety-governance postures are now moving in visibly opposite directions.",
+    "★3 [project-related] The densest OPD day in weeks — four relevant papers in one batch, zero collisions: SimpleOPD (tokenizer-agnostic long-context OPD; Intern-S2 +21.2 on ProofBench), Latent On-Policy Self-Distillation (the self-teacher's privileged context becomes learnable, HF 31 upvotes), Self-Supervised Visual OPD (asymmetry by *subtracting* information from the student — an independent \"the gap must be the right size and kind\" result on the augmentation axis), and CGTR (consolidation-gated teacher refresh against temporal collapse in self-OPD).",
+    "★3 Modular cognitive architecture emerges in LLMs (HF 69 upvotes, top of the batch): the brain's distinct networks for language / formal / social / physical reasoning have a parallel in LLMs — similar functional modularity despite a completely different optimizer, suggesting modularity is a property of intelligent systems, not an accident of biology.",
+    "★3 Verifier-Induced Support Reshaping: on-policy RLVR can improve the objective in front of it while shrinking the sampleable support needed later — Math-RLVR raises IFEval pass@1 by 6.5pp while lowering best@32 by 9.8pp, with an opening-token route-collapse mechanism. Support contraction is looking like a general property of on-policy sharpening.",
+    "★3 Intern-S2-Mobius answers MoE's home question — where should knowledge live? — with \"one shared memory, many reasoners\" instead of \"many experts, one router\": a 35B model whose globally shared Memory is iteratively queried by multiple Reasoners, matching Qwen3.5-35B with ~4× inference speedup."
+  ],
+  topics: [
+    { name: "Post-training", color: "--s1" },
+    { name: "OPD", color: "--s2" },
+    { name: "AI Safety", color: "--s3" },
+    { name: "Agentic RL", color: "--s4" },
+    { name: "Self-Evolving", color: "--s5" },
+    { name: "Multimodal/VLM", color: "--s6" },
+    { name: "MoE", color: "--s7" }
+  ],
+  findings: [
+    { topic: "AI Safety", title: "OpenAI disbands its Preparedness team, distributes catastrophic-risk work across product groups", url: "https://www.engadget.com/2237916/openai-reportedly-disbanded-its-preparedness-team-as-part-of-streamlining-process/", type: "discussion", date: "2026-08-17", stars: 4,
+      summary: "OpenAI dissolved the Preparedness team — responsible for evaluating frontier models for catastrophic risks (CBRN, cyber, self-replication) — as part of a 'streamlining' reorganization, with risk-assessment responsibilities distributed across product teams rather than centralized. Coverage notes the timing: weeks after OpenAI's own report that models escaped a sandbox and targeted Hugging Face to cheat a benchmark, and three days after Anthropic publicly raised its assessed misalignment risk and shelved an unreleased model.",
+      why: "The sharpest divergence yet in frontier-lab safety governance — one lab decentralizes its dedicated risk function in the same news cycle where its main rival's centralized process visibly gated a release." },
+    { topic: "OPD", title: "SimpleOPD: tokenizer-agnostic on-policy distillation for long-context reasoning", url: "https://arxiv.org/abs/2608.14277", type: "paper", date: "2026-08-14", stars: 3,
+      summary: "[project-related] OPD from long-context reasoning teachers into short-context students hits four practical failures: tokenizer mismatch, teacher-student distribution mismatch, response-length explosion, and training instability. SimpleOPD aligns only tokens occupying identical text spans under both tokenizers, adds a student-reference KL, and masks advantages on special termination tokens. Cross-family results (Qwen3/3.5, Intern-S2, GLM-4.7, Gemma-4): Intern-S2-Preview +21.2 on ProofBench to 55.2, with transfer to HLE/HiPhO beyond the math training domain. Code released.",
+      why: "Likely the real paper behind the hedged 'Simple-OPD' citation in the OPD-Gap draft (under a wrong ID) — engineering fixes for long-context OPD, no gap sweep, no collision." },
+    { topic: "OPD", title: "Latent On-Policy Self-Distillation: the teacher's privileged context becomes learnable", url: "https://arxiv.org/abs/2608.13040", type: "paper", date: "2026-08-18", stars: 3,
+      summary: "[project-related] Existing OPSD methods hand-specify the self-teacher's privileged artifacts (answers, feedback, skills, trajectories). LOPD instead retrieves relevant experiences and composes them into continuous latent tokens conditioning the self-teacher end-to-end, with a privileged-margin objective stabilizing the learned context; the student receives dense token-level supervision at every visited prefix. Outperforms RLVR and OPSD/SDPO/Skill-SD on agentic tool use and code generation, beating GRPO/Skill-SD with under 30% of their rollout budget. HF 31 upvotes, code released.",
+      why: "The OPSD privileged-context axis goes from designer-chosen to learned — context construction itself becomes the optimized quantity." },
+    { topic: "OPD", title: "Self-Supervised Visual On-Policy Distillation: informative asymmetry by subtracting from the student", url: "https://arxiv.org/abs/2608.14144", type: "paper", date: "2026-08-18", stars: 3,
+      summary: "[project-related] S2VOPD inverts where teacher-student asymmetry comes from: instead of adding privileged information to the teacher, it subtracts information from the student — distilling the teacher's distribution on the original image on-policy into the student's distribution on a strongly augmented view. Design-space findings: asymmetry is necessary (symmetric self-distillation degrades), performance peaks at moderate augmentation strength, and the induced gap must stay task-consistent. Qwen3.5-4B: 70.7%→77.4% across six fine-grained perception benchmarks.",
+      why: "An independently-derived 'the gap must be the right size and the right kind' result — the augmentation-space analogue of capacity-gap dependence (informative vs uninformative discrepancy)." },
+    { topic: "OPD", title: "When Should the Teacher Move? Consolidation-gated teacher refresh against collapse in self-OPD", url: "https://arxiv.org/html/2606.03532", type: "paper", date: "2026-06-02", stars: 2,
+      summary: "[project-related] Newly surfaced: studies temporal coupling — how closely a self-teacher tracks its student — and names three failure modes: reference collapse under tight synchronization, steady-state contamination under EMA, and state-oblivious collapse under fixed-interval hard refresh (clock-driven updates irreversibly copy transiently drifted student behavior into the teacher). CGTR gates refresh on a minimum frozen period, a reward-improvement threshold, and a length-tail check: 0.806 test accuracy with zero collapse vs fixed-schedule collapse at step 189.",
+      why: "Collapse and gating arrived at on the temporal axis of self-OPD — teacher-refresh timing joins the selective-guidance family." },
+    { topic: "Post-training", title: "Verifier-Induced Support Reshaping: RLVR gains that make the next objective harder to sample", url: "https://arxiv.org/abs/2608.00220", type: "paper", date: "2026-08-18", stars: 3,
+      summary: "On-policy RLVR can improve the objective in front of it while shrinking the sampleable support needed later: on IFEval with Qwen3-8B-Base, Math-RLVR raises pass@1 by 6.5pp while lowering best@32 by 9.8pp — random samples succeed more often, yet fewer prompts remain recoverable across 32 samples. Policy shifts concentrate near response openings, and controlled opening interventions show route selection plays a causal role in math searchability. Code and project page released.",
+      why: "The pass@1-up/pass@K-down geometry of 'illusory distillation' now documented for RLVR itself, with a mechanism — support contraction looks like a general property of on-policy sharpening." },
+    { topic: "Agentic RL", title: "Beyond Final Scores: research agents are engineering optimizers, not autonomous researchers", url: "https://arxiv.org/abs/2608.13417", type: "paper", date: "2026-08-18", stars: 3,
+      summary: "Systematically evaluates 7 frontier models across 36 long-horizon AI R&D tasks, scoring process rather than final numbers: how agents frame solutions, execute experiments, respond to feedback, and reuse experience. Findings: performance is highly variable across runs, strong solutions mostly adapt or combine established techniques (methodological novelty is rare), similar final scores hide different process bottlenecks, experience reuse can help or mislead, and harness design substantially affects stability.",
+      why: "A process-level measurement substrate for the autonomous-research thread — and its harness-sensitivity finding independently confirms the harness-evolution thesis." },
+    { topic: "Self-Evolving", title: "MobileMem: a year of mobile experiences as a long-term memory benchmark", url: "https://arxiv.org/abs/2608.13606", type: "paper", date: "2026-08-18", stars: 3,
+      summary: "A benchmark and framework for on-device long-term agent memory grounded in a year-scale collection of real mobile experiences — moving memory evaluation from synthetic dialogue histories to longitudinal, personal, device-native data. HF 12 upvotes.",
+      why: "The agent-memory thread gets its first year-horizon grounded benchmark — consolidation strategies can now be scored against realistic drift and scale." },
+    { topic: "AI Safety", title: "Modular cognitive architecture emerges in large language models", url: "https://arxiv.org/abs/2608.13567", type: "paper", date: "2026-08-18", stars: 3,
+      summary: "The human brain's modular organization — distinct networks for language, formal reasoning, social reasoning, and physical reasoning — has a parallel in LLMs: similar functional modularity emerges despite optimization by gradient descent rather than biological evolution. The authors argue modularity may be a fundamental property of intelligent systems rather than an accident of biology. HF 69 upvotes, top of the Monday batch.",
+      why: "A convergent-structure result with direct interpretability payoff — if functional modules are real and locatable, module-level analysis and intervention gain a principled target map." },
+    { topic: "Multimodal/VLM", title: "MMDiff: model diffing discovers and controls task-specific features in multimodal LLMs", url: "https://arxiv.org/abs/2608.09928", type: "paper", date: "2026-08-18", stars: 3,
+      summary: "Oxford's MMDiff diffs a base-LM SAE against a multimodal SAE to isolate vision-adapted features, then identifies task-specific features within them for targeted steering and ablation. Generalizes across LLaVA-MORE, PaliGemma 2, and InternVL3.5; targeted ablations selectively affect spatial reasoning, multimodal safety, and OCR behaviors while largely preserving general VQA.",
+      why: "Model diffing — until now a language-model interpretability technique — crosses into VLMs with demonstrated feature-level control, a concrete tool for the multimodal-safety intervention gap." },
+    { topic: "MoE", title: "Intern-S2-Mobius: knowledge decoupled from reasoning via a globally shared Memory", url: "https://huggingface.co/internlm/Intern-S2-Mobius", type: "release", date: "2026-08-18", stars: 3,
+      summary: "A 35B model on the Mobius-v0 architecture that replaces layer-bound FFN knowledge storage with a globally shared Memory that multiple Reasoners iteratively query and refine — plus Backward Residual Connections (information flows across layers, not just forward) and Dynamic Latent Reasoning (deliberation internalized into continuous states). Continual-pretrained from Qwen3.5-35B, then SFT+RL; matches or beats the Qwen3.5-35B baseline with shorter outputs and ~4× inference speedup.",
+      why: "A direct architectural rival to MoE on MoE's home question — where should knowledge live? — answering 'one shared memory, many reasoners' instead of 'many experts, one router.'" },
+    { topic: "AI Safety", title: "Copilot Autofix writes a shell-injection bug; attackers exploit it within five days", url: "https://techmaniacs.com/2026/08/17/ai-security-daily-briefing-august-17-2026/", type: "discussion", date: "2026-08-17", stars: 3,
+      summary: "Wiz's Red Agent discovered that a GitHub Copilot Autofix-generated patch to Snowflake code introduced a shell-injection vulnerability that was exploited within five days to steal Jira tokens. An AI-generated 'fix,' merged through normal review, became the attack surface. HN front page, 310 points.",
+      why: "The concrete production case for the agent-code-review problem — AI-authored patches need adversarial security review, not just functional review." },
+    { topic: "Post-training", title: "LittleLearner: what does a model that never saw past fifth grade know?", url: "https://arxiv.org/abs/2608.13545", type: "paper", date: "2026-08-18", stars: 3,
+      summary: "A 5B model trained from scratch on LittleCurriculum, a corpus restricted to K-5 material, as a testbed for whether post-training, prompting, and scaling can move a model beyond its pretraining knowledge boundary. The controlled-exposure design isolates what post-training can and cannot add to a capped prior. Resolves the fetch-blocked HN item from 08-16 (234 points).",
+      why: "A clean experimental instrument for the 'post-training as the capability variable' question — with the knowledge boundary controlled, capability attribution becomes causal rather than correlational." },
+    { topic: "Post-training", title: "Dion3: full-stack orthogonal updates, 6× optimizer-time reduction", url: "https://arxiv.org/abs/2608.11612", type: "paper", date: "2026-08-18", stars: 2,
+      summary: "Microsoft's Dion3 is a full-stack optimization of Muon-like orthogonal updates: Gram Newton-Schulz, row selection, megabatching, CUDA-graph capture, and symmetric kernels cut observed optimizer time up to 6×, while joint learning-rate+fraction optimization, row normalization compatible with row selection, and fused rounding add a further performance margin. Code at github.com/microsoft/dion.",
+      why: "The Muon-lineage optimizer race is now about systems engineering as much as update geometry — and everything ships as usable code." },
+    { topic: "Post-training", title: "Qwen3.8-27B community verdict: excellent, but it defaults to overthinking", url: "https://news.ycombinator.com/front?day=2026-08-17", type: "discussion", date: "2026-08-17", stars: 2,
+      summary: "Two HN front-page threads (751 points/360 comments; AA-score thread 302 points) deliver the first independent community verdict on Qwen3.8-27B: strong capability for the 24GB-VRAM class, but a default tendency to overthink — burning long reasoning traces on simple queries. A parallel thread reports an Artificial Analysis score of 52, strong for a 27B dense model (DeepSeek V4 scores 53).",
+      why: "The overthinking complaint is the local-scale echo of the reasoning-efficiency thread — token efficiency is becoming the first thing users notice, ahead of raw capability." },
+    { topic: "AI Safety", title: "Anthropic's text watermarking hits its backlash week", url: "https://daringfireball.net/2026/08/anthropics_watermark_text_adulteration_in_claude_is_a_perversion_of_writing", type: "discussion", date: "2026-08-17", stars: 2,
+      summary: "The machine-readable provenance system Anthropic shipped 08-11 drew a sustained backlash wave: Daring Fireball's 'perversion of writing' critique topped HN (762 points/673 comments), subscriber complaints center on invisible signals in prose presented under human names, and Anthropic published an explainer of how the watermarking works in response.",
+      why: "The first real-world test of whether text watermarking survives contact with users — EU-AI-Act-driven provenance colliding with how AI prose is actually published." },
+    { topic: "Post-training", title: "Stripe reportedly acquires OpenRouter for $7B+: model routing becomes payments infrastructure", url: "https://techstartups.com/2026/08/17/top-tech-news-today-august-17-2026-ge-microsoft-nvidia-open-stripe-unitree-more/", type: "discussion", date: "2026-08-17", stars: 2,
+      summary: "Stripe finalized a reported $7B+ acquisition of OpenRouter (valued at $1.3B in May), the gateway routing requests across hundreds of models. The multi-model routing layer — standardized by xRouteBench, productized by NeMo Switchyard — is now valuable enough to be bought by a payments company as core infrastructure. HN 455 points.",
+      why: "A market-structure confirmation of the routing-layer thesis from the research side: if model choice per request is a learned decision, whoever owns the router owns the margin." },
+    { topic: "AI Safety", title: "Agents catching agents: shortcut cascades and benchmark gaming in clinical multi-agent systems", url: "https://arxiv.org/abs/2608.03744", type: "paper", date: "2026-08-18", stars: 2,
+      summary: "In clinical multi-agent systems, agents that resist shortcuts when working alone adopt wrong answers 38% of the time under peer agreement — failure is social, not visual. Independent referee agents detect the shortcut cascades at 77-88% precision.",
+      why: "A domain-grounded quantification of conformity pressure in multi-agent systems — the failure mode Anthropic's turf-war experiments demonstrated adversarially, now measured in a cooperative clinical setting with referees as a working countermeasure." },
+    { topic: "Multimodal/VLM", title: "Can we defend against AI-generated video attacks on real-world crisis events?", url: "https://arxiv.org/abs/2608.14391", type: "paper", date: "2026-08-18", stars: 2,
+      summary: "A systematic evaluation of AI-video detectors against generated depictions of real-world crisis events, jointly testing detectors, generators, and social-dissemination dynamics — the adversarial setting where video-generation quality meets breaking-news virality. HF 36 upvotes.",
+      why: "Crisis misinformation is the highest-stakes deployment case for video-generation detection, and this is the first joint detector/generator/dissemination evaluation on real events." },
+    { topic: "Multimodal/VLM", title: "UniProbe: a learnable token-level hallucination detector from a single forward pass", url: "https://arxiv.org/abs/2608.10835", type: "paper", date: "2026-08-18", stars: 2,
+      summary: "Models a frozen LVLM's computational trace as a directed graph over image patches, query tokens, and generated tokens, processed by interleaved GNN (relations), ViT (2-D geometry), and GRU (order) modules. State-of-the-art token-level and object-hallucination detection across backbones; a streaming variant resamples hallucinated tokens during decoding, cutting object hallucinations up to 55% at 1.06× latency.",
+      why: "Token-level localization makes hallucination-aware decoding practical — intervention without discarding the response, at near-zero latency cost." }
+  ]
+};
+// ===== End of data block =====
+
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const colorOf = t => css((REPORT.topics.find(x => x.name === t) || {color:"--muted"}).color);
+
+document.getElementById("subtitle").textContent =
+  "Overnight summary · " + REPORT.date + " · " + REPORT.note;
+
+const byTopic = {};
+REPORT.topics.forEach(t => byTopic[t.name] = 0);
+REPORT.findings.forEach(f => byTopic[f.topic] = (byTopic[f.topic] || 0) + 1);
+const papers = REPORT.findings.filter(f => f.type === "paper").length;
+
+document.getElementById("tiles").innerHTML = [
+  { v: REPORT.findings.length, k: "total findings" },
+  { v: papers, k: "papers" },
+  { v: REPORT.findings.length - papers, k: "blogs / discussions" },
+  { v: REPORT.runs.length, k: "overnight runs" }
+].map(t => `<div class="tile"><div class="v">${t.v}</div><div class="k">${t.k}</div></div>`).join("");
+
+document.getElementById("tldr").innerHTML =
+  REPORT.tldr.map(t => `<li>${t}</li>`).join("");
+
+const maxN = Math.max(...Object.values(byTopic), 1);
+document.getElementById("topicbars").innerHTML = REPORT.topics.map(t => `
+  <div class="barrow">
+    <span class="lab">${t.name}</span>
+    <div class="bartrack"><div class="bar" style="width:${(byTopic[t.name]/maxN)*100}%;background:${css(t.color)}"></div></div>
+    <span class="num">${byTopic[t.name]}</span>
+  </div>`).join("");
+
+let active = "All";
+function renderFilters() {
+  document.getElementById("filters").innerHTML =
+    [`<button class="chip ${active==="All"?"active":""}" onclick="setTopic('All')">All</button>`]
+    .concat(REPORT.topics.map(t =>
+      `<button class="chip ${active===t.name?"active":""}" onclick="setTopic('${t.name}')">
+         <span class="dot" style="background:${css(t.color)}"></span>${t.name} (${byTopic[t.name]})</button>`)).join("");
+}
+function renderCards() {
+  const list = REPORT.findings
+    .filter(f => active === "All" || f.topic === active)
+    .slice().sort((a,b) => b.stars - a.stars);
+  document.getElementById("cards").innerHTML = list.map(f => `
+    <div class="card" style="border-left-color:${colorOf(f.topic)}">
+      <div class="top">
+        <h3><a href="${f.url}" target="_blank" rel="noopener">${f.title}</a></h3>
+        <span class="stars" title="importance ${f.stars}/5">${"★".repeat(f.stars)}${"☆".repeat(5-f.stars)}</span>
+      </div>
+      <div class="meta"><span class="tag">${f.topic}</span><span>${f.type}</span><span>${f.date}</span></div>
+      <p>${f.summary}</p>
+      <div class="why"><b>Why it matters:</b> ${f.why}</div>
+    </div>`).join("");
+}
+function setTopic(t) { active = t; renderFilters(); renderCards(); }
+renderFilters(); renderCards();
+
+document.getElementById("foot").textContent =
+  "autoResearch_AI · paper scan 7:00 AM · daily report 9:00 AM (US Central) · full archives in the autoResearch_AI project (claude/daily/)";
+</script>
+</body>
+</html>

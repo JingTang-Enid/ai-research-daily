@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Research Daily</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7; --surface: #fcfcfb;
+    --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+    --grid: #e1e0d9; --border: rgba(11,11,11,0.10);
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7;
+    --chip-bg: #f0efec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page: #0d0d0d; --surface: #1a1a19;
+      --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+      --grid: #2c2c2a; --border: rgba(255,255,255,0.10);
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9;
+      --chip-bg: #383835;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page); color: var(--ink);
+    padding: 28px 20px 60px; max-width: 980px; margin: 0 auto;
+  }
+  nav { display: flex; gap: 16px; align-items: center; margin-bottom: 18px; font-size: 13px; flex-wrap: wrap; }
+  nav .brand { font-weight: 700; }
+  nav a { text-decoration: none; color: var(--muted); }
+  nav a.active { color: var(--ink); font-weight: 600; }
+  header { margin-bottom: 22px; }
+  h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+  .sub { color: var(--ink-2); font-size: 13.5px; margin-top: 5px; line-height: 1.5; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 20px 0; }
+  .tile { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .tile .v { font-size: 26px; font-weight: 700; }
+  .tile .k { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; margin-bottom: 18px; }
+  .panel h2 { font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: 12px; }
+  .barrow { display: grid; grid-template-columns: 150px 1fr 30px; align-items: center; gap: 10px; margin: 7px 0; font-size: 12.5px; }
+  .barrow .lab { color: var(--ink-2); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bartrack { height: 14px; position: relative; }
+  .bar { height: 14px; border-radius: 0 4px 4px 0; }
+  .barrow .num { font-variant-numeric: tabular-nums; color: var(--ink-2); }
+  .tldr li { margin: 8px 0 8px 0; line-height: 1.55; font-size: 13.5px; color: var(--ink); }
+  .tldr { padding-left: 18px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 14px; }
+  .chip {
+    border: 1px solid var(--border); background: var(--chip-bg); color: var(--ink-2);
+    border-radius: 999px; padding: 6px 13px; font-size: 12.5px; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  .chip .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .chip.active { background: var(--ink); color: var(--page); border-color: var(--ink); }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; margin-bottom: 10px; border-left: 4px solid var(--grid);
+  }
+  .card .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .card h3 { font-size: 14.5px; font-weight: 600; line-height: 1.4; }
+  .card h3 a { color: inherit; text-decoration: none; }
+  .card h3 a:hover { text-decoration: underline; }
+  .meta { font-size: 11.5px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  .stars { color: var(--s4); font-size: 12px; letter-spacing: 1px; white-space: nowrap; }
+  .card p { font-size: 13px; color: var(--ink-2); line-height: 1.55; margin-top: 8px; }
+  .why { font-size: 12.5px; margin-top: 7px; color: var(--ink); }
+  .why b { font-weight: 600; }
+  .tag { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--chip-bg); color: var(--ink-2); }
+  footer { margin-top: 26px; font-size: 12px; color: var(--muted); line-height: 1.6; }
+</style>
+</head>
+<body>
+<nav>
+  <span class="brand">autoResearch_AI</span>
+  <a href="../" class="active">Daily Report</a>
+  <a href="../nightly/">Paper Scan</a>
+</nav>
+<header>
+  <h1>AI Research Daily</h1>
+  <div class="sub" id="subtitle"></div>
+</header>
+
+<div class="tiles" id="tiles"></div>
+
+<div class="panel">
+  <h2>TL;DR — Top picks today</h2>
+  <ul class="tldr" id="tldr"></ul>
+</div>
+
+<div class="panel">
+  <h2>Findings by topic</h2>
+  <div id="topicbars"></div>
+</div>
+
+<div class="filters" id="filters"></div>
+<div id="cards"></div>
+
+<footer id="foot"></footer>
+
+<script>
+// ===== Replaced daily by the morning-report agent. ALL content in English. =====
+const REPORT = {
+  date: "2026-08-12",
+  note: "Paper scan: 17 items across 7 topics (Tuesday batch; the 08-10 encrypted-reasoning sighting confirmed as a real cross-vendor break, now patched)",
+  runs: ["Paper scan 07:00 (17 items)"],
+  tldr: [
+    "★4 The 08-10 sighting is confirmed and went mainstream: \"Stealing Reasoning Traces from Proprietary LLM APIs\" (2608.09867, ELLIS Tübingen/MPI/MATS/Snyk, 470 HN points) shows the encrypted reasoning envelopes of OpenAI, Anthropic, and Google are authenticated with provider-wide keys — not bound to user, session, or tier — so flagship reasoning blocks can be replayed into weaker sibling models and transcribed to plaintext. 367 PII artifacts and 182 hardcoded credentials extracted from 6,708 public agent transcripts; all three vendors have deployed server-side mitigations.",
+    "★4 Ouroboros (2608.08311, 1.1k HF upvotes): a self-developing coding agent whose tools, prompts, context assembly, and core implementation improve through reviewed commits that become the runtime for later work — 86.74% Terminal-Bench 2.1 and 90.69% OSWorld-Verified, both best-reported, plus a 161-day continuous deployment. The strongest benchmark claims yet for the self-modifying-harness thesis.",
+    "★4 Motif 3 (2608.09119): a 314B/13.2B-active MoE (384 experts/layer top-8, Grouped Differential Latent Attention, expert-specific PolyNorm activations) on ~12.5T tokens — and the third documented industrial instance of specialists-then-multi-teacher-OPD post-training, after DeepSeek V4 and K3. That pipeline is now a three-lab standard.",
+    "★3 [project-related] A four-paper OPD cluster: SR-OPSD (2608.09745) proves the self-distillation target is a geometric interpolation with coefficient α between self-teacher and reference policy; SPOT (2608.04419) validates token credit with outcome verification before distilling; U-OPSD (2608.06296) drops supervision entirely via majority-vote pseudo-solutions (+8.5/+10.7% at 4B/8B on math); and a May backfill (2605.16826) factorizes the design space into KL direction × prefix source. None collides with in-house work.",
+    "★3 BDH-CQ (2608.09888, Pathway, 249 HF upvotes): recurrent latent reasoning at 150M parameters reaches 29.5% pass@2 on ARC-AGI-1 at $0.0007/task — a concrete counterpoint to verbalized-CoT scaling at ~1/1000th the usual cost."
+  ],
+  topics: [
+    { name: "Post-training", color: "--s1" },
+    { name: "OPD", color: "--s2" },
+    { name: "AI Safety", color: "--s3" },
+    { name: "Agentic RL", color: "--s4" },
+    { name: "Self-Evolving", color: "--s5" },
+    { name: "Multimodal/VLM", color: "--s6" },
+    { name: "MoE", color: "--s7" }
+  ],
+  findings: [
+    { topic: "AI Safety", title: "Stealing Reasoning Traces from Proprietary LLM APIs — provider-wide keys let attackers decrypt flagship reasoning via weaker siblings", url: "https://arxiv.org/abs/2608.09867", type: "paper", date: "2026-08-11", stars: 4,
+      summary: "ELLIS Tübingen / MPI / MATS / Snyk show the encrypted reasoning envelopes that OpenAI, Anthropic, and Google return to hide chain-of-thought are authenticated with provider-wide keys, not bound to user, session, or model tier. Capturing an encrypted reasoning block from a flagship model and replaying it into a cheaper sibling — which lacks the flagship's anti-distillation alignment — gets the hidden thinking transcribed to plaintext. Scanning 6,708 public agent transcripts yielded 367 PII artifacts and 182 hardcoded credentials (62 API keys, 33 passwords); the primitive also enables invisible indirect prompt injection. All three vendors acknowledged and deployed server-side mitigations.",
+      why: "Confirms the 08-10 unverified sighting as a real cross-ecosystem break — the anti-distillation/CoT-privacy layer itself was the weakest link, extending the \"safety instrument as failure point\" pattern from eval harnesses to API cryptography." },
+    { topic: "Self-Evolving", title: "Ouroboros: a self-developing frontier coding agent with reviewed core evolution", url: "https://arxiv.org/abs/2608.08311", type: "paper", date: "2026-08-08", stars: 4,
+      summary: "Razzhigaev et al. build an agent whose tools, prompts, context assembly, and core implementation improve through reviewed commits that become the runtime for subsequent work, in two modes: recursive free evolution (improvement itself is the task) and experience-driven evolution (real work exposes inefficiencies). Reports 86.74% on Terminal-Bench 2.1 and 90.69% on OSWorld-Verified (both best-reported), SOTA on CL-Bench, plus \"Hope,\" a 161-day continuous deployment where the agent autonomously decides which human-suggested changes to adopt. Explicit design constraint: guardrails must remain authoritative under evolutionary and social pressure.",
+      why: "The strongest benchmark claims yet for the self-modifying-harness thesis — and the reviewed-commit gate is a concrete answer to how core self-modification stays safe, landing the same week Evo-Bench tries to measure exactly this capability." },
+    { topic: "MoE", title: "Motif 3: 314B/13.2B-active MoE with GDLA attention — and the third documented specialists-then-OPD pipeline", url: "https://arxiv.org/abs/2608.09119", type: "paper", date: "2026-08-10", stars: 4,
+      summary: "Motif Technologies' 314B-total / 13.2B-active decoder-only MoE: 384 routed experts per layer with top-8 selection, Grouped Differential Latent Attention (grouped differential attention + compressed KV), manifold-constrained hyper-connections, Expert-Specific PolyNorm activations, and multi-token prediction; pretrained on ~12.5T tokens with context up to 256K. Post-training combines general SFT, six RL-trained specialist teachers plus an SFT software-engineering teacher, and Multi-teacher On-Policy Distillation; competitive against leading open-weight models on long-horizon agentic tasks, math, and hallucination-sensitive evals.",
+      why: "Specialists-then-multi-teacher-OPD is now a three-lab documented standard (DeepSeek V4 → K3 → Motif 3), and the expert-specific activation function is a new axis of expert specialization worth watching." },
+    { topic: "OPD", title: "SR-OPSD: the distillation target as an explicit α-interpolation between self-teacher and reference policy", url: "https://arxiv.org/html/2608.09745", type: "paper", date: "2026-08-10", stars: 3,
+      summary: "[project-related] Addresses instability when a self-teacher co-evolves with the student in on-policy self-distillation by decoupling two design choices: where the target sits — proven to be a geometric interpolation with coefficient α between the self-teacher and a reference policy — and how the student projects onto it, controlled by Rényi divergence order ρ (tuning ratio-sensitivity without moving the target). Competitive-to-SOTA across scientific QA, math reasoning, and code generation at multiple model scales.",
+      why: "The closest published construction to an α-anchoring axis — but deployed in the gap≡0 self-distillation setting, with no teacher-student capacity-gap sweep: a mandatory related-work citation whose interpolation theorem may formalize anchoring mechanisms." },
+    { topic: "OPD", title: "SPOT: sparse probing and outcome calibration for on-policy distillation", url: "https://arxiv.org/html/2608.04419", type: "paper", date: "2026-08-05", stars: 3,
+      summary: "[project-related] CUHK-Shenzhen et al. split OPD's dense supervision into three stages: score positions by normalized teacher entropy + top-k mass concentration + student-teacher mismatch (probe only where the teacher sees multiple plausible candidates); sample student continuations from teacher-proposed alternatives and check them with a verifier; then distill a closed-form KL-regularized target favoring candidates with better verified downstream outcomes while staying anchored to the teacher distribution. Highest macro Pass@8 in all three settings across six math benchmarks on three Qwen scales.",
+      why: "The selective-guidance family's first member that validates token credit with outcome verification — a direct constructive answer to the \"privileged likelihood is not value\" critique (2608.09263)." },
+    { topic: "OPD", title: "U-OPSD: on-policy self-distillation without any supervision", url: "https://arxiv.org/abs/2608.06296", type: "paper", date: "2026-08-06", stars: 3,
+      summary: "Li et al. (UCSD) drop ground-truth labels and external feedback entirely: generate multiple rollouts, build a pseudo-solution by majority vote with a consistency threshold, then distill that solution into the incorrect completions for targeted self-correction. Improves base Qwen3 non-thinking models by 8.5%/10.7% at 4B/8B on AIME24/25, HMMT25, MATH500, AMC23, beating the supervised OPSD baseline by 3.2%/2.3% on average; matches supervised methods in thinking mode.",
+      why: "Self-distillation's supervision requirement falls to majority-vote consistency — the TTRL/self-consistency trick imported into the OPSD loop, sharpening the question of what internal consistency can and cannot teach." },
+    { topic: "OPD", title: "Decoupling KL and Trajectories: a unified 2×2 for SFT, DAgger, offline RL, and OPD", url: "https://arxiv.org/html/2605.16826v1", type: "paper", date: "2026-05", stars: 3,
+      summary: "[project-related] Zhao et al. show KL direction (forward/reverse) and prefix source (teacher/student) are orthogonal axes whose four combinations recover off-policy SFT, DAgger-style on-policy SFT, offline-RL-style distillation, and OPD, with gradient-level identities for each. Distilling Qwen3 4B/8B→0.6B on math: reverse KL gains +2.45 average accuracy but collapses entropy and Pass@k, destabilizing downstream RL; student prefixes gain +1.80 Avg@k over teacher prefixes; KL mixing plus an entropy-gated length curriculum (+3.6 Avg@k, +5.8 Pass@k, ~3× shorter responses) fixes the long-sequence failure.",
+      why: "The cleanest published factorization of the OPD design space — its KL-mixing remedy is the divergence-side cousin of trajectory-side anchoring approaches. (Newly surfaced May paper.)" },
+    { topic: "Agentic RL", title: "SWE-Bench ProMax: large-scale multilingual code refactoring, best agent at 41.2%", url: "https://arxiv.org/abs/2608.09802", type: "paper", date: "2026-08-10", stars: 3,
+      summary: "Shi et al. build 170 real-world refactoring tasks across Python, Java, TypeScript, Go, C, C++, and Rust, averaging 11.4 modified files and 261.6 LOC per instance — with issue descriptions rewritten from scratch and test suites manually reviewed (motivated by ~60% of unsolved SWE-bench-Verified instances having flawed tests). Frontier models under two scaffolds top out at a 41.2% resolve rate.",
+      why: "Refactoring at 11-file scope is the cross-file, long-horizon regime where coding agents actually live — and the deliberate test-suite hygiene answers the eval-validity critiques that have dogged SWE-bench derivatives." },
+    { topic: "Agentic RL", title: "OCSD: observation-calibrated self-distillation — controlling for the replay-view artifact in privileged token credit", url: "https://arxiv.org/abs/2608.04788", type: "paper", date: "2026-08-05", stars: 3,
+      summary: "Yang et al. note that privileged replay views (re-scoring trajectories with future observations visible) conflate genuine information value with reconstruction artifacts of the replay mechanism itself. OCSD contrasts two structurally matched replays — future observations present vs absent — to isolate the observation contribution, then applies the calibrated signal at high-uncertainty decision points. Consistently beats strong baselines across three Qwen3 scales on ALFWorld, WebShop, and Search-QA; code released.",
+      why: "A constructive fix in the token-credit-validity thread: the matched-contrast design is exactly the \"does feedback construction bias comparisons\" check the Salesforce paper demanded, implemented as a training signal." },
+    { topic: "Self-Evolving", title: "Macaron-V1: open Mixture-of-LoRA agent models for deployment-time continual learning", url: "https://arxiv.org/abs/2608.09819", type: "release", date: "2026-08-10", stars: 3,
+      summary: "Mind Lab's open release freezes a base model, composes specialist LoRA adapters (chat, agent, coding, GenUI), and selects one LoRA per user turn; continual learning proceeds by recursive improvement of versioned model-harness pairs, each configuration's experience evaluated under an external contract before constructing its successor. Two variants: Venti at 744B on a GLM-5.2 base — billed as the first model post-trained on GLM-5.2 — and Tall at 50B on Qwen3.6 for local deployment.",
+      why: "The learn-after-deployment problem attacked at open-weights scale with LoRA composition instead of weight surgery — and the versioned model-harness-pair contract is the same reviewed-evolution instinct as Ouroboros, arrived at independently." },
+    { topic: "Self-Evolving", title: "Evo-Bench: can language models improve agent harnesses?", url: "https://arxiv.org/abs/2608.09096", type: "paper", date: "2026-08-10", stars: 3,
+      summary: "Huang et al. isolate harness-evolution ability from base capability across Search, Office, and General agent domains, using auxiliary-task evolution to find tasks genuinely sensitive to framework improvements and sensitivity-aware stratified splitting to prevent overfitting. Across nine frontier/open models: top models gain up to +16.6 points absolute, approaching human-engineered harnesses; evolution works in Search/General but struggles on Office tasks needing highly specific workflows; synthesized harnesses transfer across policy models.",
+      why: "The harness-optimization thread gets a purpose-built benchmark — and the transferability finding says evolved harnesses are portable reasoning structures, not model-specific hacks." },
+    { topic: "Post-training", title: "BDH-CQ: recurrent latent reasoning breaks the ARC-AGI-1 cost-accuracy Pareto frontier at 150M parameters", url: "https://arxiv.org/abs/2608.09888", type: "paper", date: "2026-08-10", stars: 3,
+      summary: "Pathway's BDH-CQ couples in-context learning with recurrent latent reasoning: inference-time inputs update a recurrent memory, and queries are solved by iterative computation in high-dimensional latent space without verbalizing intermediate reasoning. A 150M-parameter model reaches 29.5% pass@2 on ARC-AGI-1 at $0.0007/task — claimed as a new SOTA in cost efficiency — with controlled ARC-like interventions probing what it learns from demonstrations.",
+      why: "A concrete counterpoint to verbalized-CoT scaling — latent iterative computation as the reasoning substrate at 1/1000th the usual cost, from the team behind the Baby Dragon Hatchling architecture line." },
+    { topic: "Multimodal/VLM", title: "RynnValue: scaling robotic value foundation models with temporal distance", url: "https://arxiv.org/abs/2608.09853", type: "paper", date: "2026-08-10", stars: 3,
+      summary: "Alibaba DAMO et al. train an open value foundation model for manipulation on temporal distance — estimated steps to a language-specified goal — derived purely from timestamps in 7,000+ hours (~3M instruction-conditioned clips) of robot video, no preference or progress labels. Random temporal sampling, temporal-order shuffling, and value-isolation attention block shortcut features; OOD Kendall's τ_a 0.675 beats preference-supervised baselines (0.655), and plugging the value model into real-world policies lifts success 52.5%→72.5% online and 63.8%→82.5% offline, generalizing zero-shot to unseen tasks, embodiments, and viewpoints.",
+      why: "Timestamps-as-labels turns every robot video into value supervision — the cheapest scaling recipe yet for the reward/value side of the VLA stack." },
+    { topic: "MoE", title: "ReBA: geometry-guided load balancing for vision-language MoE", url: "https://arxiv.org/abs/2608.00574", type: "paper", date: "2026-08-01", stars: 3,
+      summary: "Wu et al. (Peking U) show the standard auxiliary load-balancing loss ignores router-input geometry in VL-MoE: image and text tokens occupy separate regions and visual tokens cluster by source image, producing >5× load-imbalance swings across image resolutions. ReBA (\"Relax Within, Balance Across\") uses separate per-modality loss terms and per-image routing instances with equal weighting; lowers load on every reported benchmark input at comparable task accuracy and shrinks worst-case imbalance under resolution/tiling variation. Code released.",
+      why: "Multimodal token geometry breaks the text-era balancing recipe — a clean mechanism-level result for MoE routing as the open frontier goes multimodal-sparse." },
+    { topic: "Multimodal/VLM", title: "The Next Screenshot Knows: gated hindsight distillation for mobile GUI agents", url: "https://arxiv.org/abs/2608.06065", type: "paper", date: "2026-08-06", stars: 2,
+      summary: "Uses the next screenshot — the observation that follows an action — as hindsight supervision for mobile GUI agents, with a gating mechanism deciding when the hindsight signal should be distilled into the policy. Sits at the GUI-agent intersection of the hindsight-replay and selective-distillation threads. (Title-level this round; details to backfill.)",
+      why: "The privileged-information gating recipe from the OPD thread crossing into multimodal GUI agents — evidence the token-credit toolbox is going modality-general." },
+    { topic: "MoE", title: "Survey: the evolution of MoE architectures — routing, topology, load balancing, expert parallelism", url: "https://arxiv.org/abs/2608.08650", type: "paper", date: "2026-08-08", stars: 2,
+      summary: "A survey organizing the modern MoE design space along four axes — routing algorithms, expert topology, load balancing, and expert parallelism — landing just as the open frontier's MoE cohort (K3's 896-expert LatentMoE, DeepSeek V4, GLM-5.2, now Motif 3's 384-expert GDLA design) makes those axes directly comparable on open weights. (Title-level this round; details to backfill.)",
+      why: "First survey scoped to the post-2025 fine-grained-expert generation; useful as a taxonomy reference for the MoE thread." },
+    { topic: "AI Safety", title: "Anthropic ships machine-readable watermarks for Claude-generated content", url: "https://techstartups.com/2026/08/11/top-tech-news-today-august-11-2026-anthropic-intel-meta-openai-nvidia-unitree-more/", type: "release", date: "2026-08-11", stars: 2,
+      summary: "Anthropic introduced machine-readable provenance for Claude outputs: imperceptible text-level signals plus C2PA metadata on generated images, positioned as compliance with the EU AI Act's transparency duties (deepfake labeling, AI-content disclosure) that became enforceable 08-02.",
+      why: "The first frontier-lab text-watermarking deployment tied explicitly to the EU AI Act enforcement window — a compliance-driven forcing function the other labs will now be measured against." }
+  ]
+};
+// ===== End of data block =====
+
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const colorOf = t => css((REPORT.topics.find(x => x.name === t) || {color:"--muted"}).color);
+
+document.getElementById("subtitle").textContent =
+  "Overnight summary · " + REPORT.date + " · " + REPORT.note;
+
+const byTopic = {};
+REPORT.topics.forEach(t => byTopic[t.name] = 0);
+REPORT.findings.forEach(f => byTopic[f.topic] = (byTopic[f.topic] || 0) + 1);
+const papers = REPORT.findings.filter(f => f.type === "paper").length;
+
+document.getElementById("tiles").innerHTML = [
+  { v: REPORT.findings.length, k: "total findings" },
+  { v: papers, k: "papers" },
+  { v: REPORT.findings.length - papers, k: "blogs / discussions" },
+  { v: REPORT.runs.length, k: "overnight runs" }
+].map(t => `<div class="tile"><div class="v">${t.v}</div><div class="k">${t.k}</div></div>`).join("");
+
+document.getElementById("tldr").innerHTML =
+  REPORT.tldr.map(t => `<li>${t}</li>`).join("");
+
+const maxN = Math.max(...Object.values(byTopic), 1);
+document.getElementById("topicbars").innerHTML = REPORT.topics.map(t => `
+  <div class="barrow">
+    <span class="lab">${t.name}</span>
+    <div class="bartrack"><div class="bar" style="width:${(byTopic[t.name]/maxN)*100}%;background:${css(t.color)}"></div></div>
+    <span class="num">${byTopic[t.name]}</span>
+  </div>`).join("");
+
+let active = "All";
+function renderFilters() {
+  document.getElementById("filters").innerHTML =
+    [`<button class="chip ${active==="All"?"active":""}" onclick="setTopic('All')">All</button>`]
+    .concat(REPORT.topics.map(t =>
+      `<button class="chip ${active===t.name?"active":""}" onclick="setTopic('${t.name}')">
+         <span class="dot" style="background:${css(t.color)}"></span>${t.name} (${byTopic[t.name]})</button>`)).join("");
+}
+function renderCards() {
+  const list = REPORT.findings
+    .filter(f => active === "All" || f.topic === active)
+    .slice().sort((a,b) => b.stars - a.stars);
+  document.getElementById("cards").innerHTML = list.map(f => `
+    <div class="card" style="border-left-color:${colorOf(f.topic)}">
+      <div class="top">
+        <h3><a href="${f.url}" target="_blank" rel="noopener">${f.title}</a></h3>
+        <span class="stars" title="importance ${f.stars}/5">${"★".repeat(f.stars)}${"☆".repeat(5-f.stars)}</span>
+      </div>
+      <div class="meta"><span class="tag">${f.topic}</span><span>${f.type}</span><span>${f.date}</span></div>
+      <p>${f.summary}</p>
+      <div class="why"><b>Why it matters:</b> ${f.why}</div>
+    </div>`).join("");
+}
+function setTopic(t) { active = t; renderFilters(); renderCards(); }
+renderFilters(); renderCards();
+
+document.getElementById("foot").textContent =
+  "autoResearch_AI · paper scan 7:00 AM · daily report 9:00 AM (US Central) · full archives in the autoResearch_AI project (claude/daily/)";
+</script>
+</body>
+</html>

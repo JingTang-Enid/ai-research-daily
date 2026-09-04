@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Research Daily</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7; --surface: #fcfcfb;
+    --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+    --grid: #e1e0d9; --border: rgba(11,11,11,0.10);
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7;
+    --chip-bg: #f0efec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page: #0d0d0d; --surface: #1a1a19;
+      --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+      --grid: #2c2c2a; --border: rgba(255,255,255,0.10);
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9;
+      --chip-bg: #383835;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page); color: var(--ink);
+    padding: 28px 20px 60px; max-width: 980px; margin: 0 auto;
+  }
+  nav { display: flex; gap: 16px; align-items: center; margin-bottom: 18px; font-size: 13px; flex-wrap: wrap; }
+  nav .brand { font-weight: 700; }
+  nav a { text-decoration: none; color: var(--muted); }
+  nav a.active { color: var(--ink); font-weight: 600; }
+  header { margin-bottom: 22px; }
+  h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+  .sub { color: var(--ink-2); font-size: 13.5px; margin-top: 5px; line-height: 1.5; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 20px 0; }
+  .tile { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .tile .v { font-size: 26px; font-weight: 700; }
+  .tile .k { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; margin-bottom: 18px; }
+  .panel h2 { font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: 12px; }
+  .barrow { display: grid; grid-template-columns: 150px 1fr 30px; align-items: center; gap: 10px; margin: 7px 0; font-size: 12.5px; }
+  .barrow .lab { color: var(--ink-2); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bartrack { height: 14px; position: relative; }
+  .bar { height: 14px; border-radius: 0 4px 4px 0; }
+  .barrow .num { font-variant-numeric: tabular-nums; color: var(--ink-2); }
+  .tldr li { margin: 8px 0 8px 0; line-height: 1.55; font-size: 13.5px; color: var(--ink); }
+  .tldr { padding-left: 18px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 14px; }
+  .chip {
+    border: 1px solid var(--border); background: var(--chip-bg); color: var(--ink-2);
+    border-radius: 999px; padding: 6px 13px; font-size: 12.5px; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  .chip .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .chip.active { background: var(--ink); color: var(--page); border-color: var(--ink); }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; margin-bottom: 10px; border-left: 4px solid var(--grid);
+  }
+  .card .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .card h3 { font-size: 14.5px; font-weight: 600; line-height: 1.4; }
+  .card h3 a { color: inherit; text-decoration: none; }
+  .card h3 a:hover { text-decoration: underline; }
+  .meta { font-size: 11.5px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  .stars { color: var(--s4); font-size: 12px; letter-spacing: 1px; white-space: nowrap; }
+  .card p { font-size: 13px; color: var(--ink-2); line-height: 1.55; margin-top: 8px; }
+  .why { font-size: 12.5px; margin-top: 7px; color: var(--ink); }
+  .why b { font-weight: 600; }
+  .tag { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--chip-bg); color: var(--ink-2); }
+  footer { margin-top: 26px; font-size: 12px; color: var(--muted); line-height: 1.6; }
+</style>
+</head>
+<body>
+<nav>
+  <span class="brand">autoResearch_AI</span>
+  <a href="../" class="active">Daily Report</a>
+  <a href="../nightly/">Paper Scan</a>
+</nav>
+<header>
+  <h1>AI Research Daily</h1>
+  <div class="sub" id="subtitle"></div>
+</header>
+
+<div class="tiles" id="tiles"></div>
+
+<div class="panel">
+  <h2>TL;DR — Top picks today</h2>
+  <ul class="tldr" id="tldr"></ul>
+</div>
+
+<div class="panel">
+  <h2>Findings by topic</h2>
+  <div id="topicbars"></div>
+</div>
+
+<div class="filters" id="filters"></div>
+<div id="cards"></div>
+
+<footer id="foot"></footer>
+
+<script>
+// ===== Replaced daily by the morning-report agent. ALL content in English. =====
+const REPORT = {
+  date: "2026-09-02",
+  note: "Paper scan: 16 items across 7 topics (Claude Fable 5.1/Mythos 5.1 point-release; the Qwen3.8-Next MoE design paper; a rubric cluster tops self-evolving; one project-related OPD mechanism paper, zero collisions)",
+  runs: ["Paper scan 07:00 (16 items)"],
+  tldr: [
+    "★4 Anthropic shipped Claude Fable 5.1 and Mythos 5.1 (Sep 1) — a pure point-release with outsized agentic jumps (Terminal-Bench-Science 24.7→52.6, AutomationBench 17.1→31.4) at unchanged base pricing, plus a 75% cache-read price cut ($1.00→$0.25/M, 2.5% of input price) aimed squarely at long-running agent workloads. Cyber safeguards retuned to intervene 60% less on legitimate security research; new Enterprise Frontier Safeguards keep misuse-monitoring data in the customer's own cloud.",
+    "★4 The Qwen3.8-Next design paper (2608.30320) is the MoE read of the round: a 125B-total/6B-active hybrid (Gated DeltaNet + sparse attention, gated 4-branch residuals, off-accelerator n-gram embeddings) matching its 397B predecessor at ~1/9 the training FLOPs — with rare disclosure of optimizer × architecture co-effects (Muon shifts optimal LR/batch upward, removes batch-size warmup) and a demonstration that loss and downstream accuracy can decouple.",
+    "★4 FACE-Eval (2608.29464): CoT faithfulness collapses when preference cues arrive via tool returns instead of user messages — models verbalize reliance less, yet silently adopt the cue MORE, on all 15 models tested (4B–1.60T). CoT monitoring is being standardized exactly where it works best and deployed where it works worst.",
+    "★3 A rubric cluster tops the self-evolving thread: PaperGym (2608.31119) turns papers into low-leakage RL environments, using the rubric twice — OPSD self-teacher context, then GRPO reward (8B hits 73.48 ResearchQA, edging Kimi K2.6); AutoSciRub (2608.31076) induces the rubric BEFORE executing the research task. \"Who writes the rubric, and when\" is emerging as the control surface for self-improving research agents.",
+    "★3 [project-related] A token-level analysis of sampled-token reverse-KL OPD (2608.25643): the gradient norm factorizes into |teacher−student log-prob gap| × a student softmax factor, so low-probability student tokens dominate gradient mass — the mechanism-level substrate under 2608.31046's \"OPD works by suppression\" claim. Zero collision with the lab draft."
+  ],
+  topics: [
+    { name: "Post-training", color: "--s1" },
+    { name: "OPD", color: "--s2" },
+    { name: "AI Safety", color: "--s3" },
+    { name: "Agentic RL", color: "--s4" },
+    { name: "Self-Evolving", color: "--s5" },
+    { name: "Multimodal/VLM", color: "--s6" },
+    { name: "MoE", color: "--s7" }
+  ],
+  findings: [
+    { topic: "Post-training", title: "Anthropic ships Claude Fable 5.1 and Mythos 5.1: agentic point-release with a 75% cache-read price cut", url: "https://venturebeat.com/technology/anthropics-claude-fable-5-1-and-mythos-5-1-arrive-with-a-75-cost-reduction-for-fable-cache-reads", type: "release", date: "2026-09-01", stars: 4,
+      summary: "Fable 5.1 more than doubles several agentic benchmarks over Fable 5 at unchanged base pricing ($10/$50 per 1M): Terminal-Bench-Science 24.7→52.6, Terminal-Bench 4.0 42.0→55.8, AutomationBench 17.1→31.4, with early customers reporting a 38-hour unattended ML investigation. Cached-input price drops 75% ($1.00→$0.25/M, 2.5% of input price vs the usual 10%), a direct play for long-running agent workloads. Safety-side: cyber safeguards retuned to intervene 60% less on legitimate security research, and new Enterprise Frontier Safeguards keep misuse-monitoring data in the customer's own cloud under customer-controlled encryption.",
+      why: "Another frontier point-release whose gains are post-training/harness work at fixed base — and the cache-price cut plus EFS are both engineered specifically for the long-horizon agent era." },
+    { topic: "MoE", title: "On the Design of Qwen3.8-Next: 125B-total/6B-active hybrid MoE matches a 397B model at ~1/9 the training FLOPs", url: "https://huggingface.co/papers/2608.30320", type: "paper", date: "2026-08-31", stars: 4,
+      summary: "The design paper behind Qwen3.8-Flash-Next: a sparse MoE with 125B total / 6B activated parameters combining Gated DeltaNet with global attention layer-wise, Qwen Sparse Attention swapped in during continued pretraining, a \"Gated Residual\" stream widened to four branches, and n-gram embeddings stored off-accelerator. Matches or exceeds the 397B predecessor on most benchmarks with 1/3 the activated parameters, 1/3 the training tokens, ~1/9 the FLOPs; Muon plus these changes shifts optimal LR/batch upward, removes batch-size warmup, and hardens stress-test stability — while showing loss and downstream accuracy can decouple (bigger n-gram vocab lowers loss without accuracy gains).",
+      why: "The most detailed public account of a frontier lab's sparse-architecture tradeoffs this year — and a rare disclosure of optimizer × architecture co-effects on training stability at MoE scale." },
+    { topic: "AI Safety", title: "FACE-Eval: CoT faithfulness collapses when preference cues arrive via tool returns instead of user messages", url: "https://huggingface.co/papers/2608.29464", type: "paper", date: "2026-08-31", stars: 4,
+      summary: "A 5,100-sample benchmark varying where a bias cue is delivered (user message vs tool return) and how explicit it is (direct summary vs raw artifact), evaluated on 15 open-weight models from 4B to 1.60T. Models verbalize their reliance on the cue far less when it arrives through tool outputs — yet unverbalized adoption is HIGHER for tool-return cues on all 15 models, i.e. the influence is real but silent. A source-attribution prompt helps modestly; monitoring alerts don't; external auditors can still detect hidden adoption (r=-0.54/-0.78).",
+      why: "CoT monitoring is being standardized on user-message probes exactly where it works best — in agentic settings the cues come through tools, where traces are least faithful." },
+    { topic: "OPD", title: "A Token-Level Analysis of Sampled-Token Reverse-KL On-Policy Distillation", url: "https://arxiv.org/abs/2608.25643", type: "paper", date: "2026-08-27", stars: 3,
+      summary: "[project-related] Derives that the ℓ₁ gradient norm of sampled-token reverse-KL OPD factorizes into the absolute teacher–student log-probability gap times a student-side softmax factor — so tokens the student assigns low probability receive disproportionate gradient mass, and those same tokens concentrate the largest teacher–student disagreements. Proposes SuRe (surprise-aware reweighting), a lightweight amplification of this natural concentration, with modest gains on math reasoning (Fudan).",
+      why: "The gradient-level mechanics behind 2608.31046's \"OPD works by suppressing low-probability student tokens\" claim — no capacity-gap sweep, no anchoring, zero collision, but a clean companion cite for the rollout-quality/anchoring account." },
+    { topic: "Post-training", title: "NoRA: normalizing LoRA's down-projection stabilizes SFT, RL, and pretraining for free", url: "https://huggingface.co/papers/2608.31036", type: "paper", date: "2026-08-31", stars: 3,
+      summary: "Since LoRA initializes the up-projection at zero, early training dynamics are dominated by the down-projection; NoRA normalizes the down-projection matrices during training (or optionally only at init), with no new trainable parameters and no inference-time cost. Reports faster convergence, better final performance, improved training stability, and reduced catastrophic forgetting across pretraining, SFT, and RL settings.",
+      why: "A one-line, overhead-free fix to the most widely used PEFT method, covering the RL fine-tuning case where LoRA instability bites hardest." },
+    { topic: "Agentic RL", title: "CAST: critique-aware supervision turns sparse outcomes into action-level training signal for tool-calling agents", url: "https://huggingface.co/papers/2608.30147", type: "paper", date: "2026-08-31", stars: 3,
+      summary: "For long-horizon tool use where one wrong action (e.g. refunding the wrong purchase) is irreversible, CAST synthesizes structured rationales explaining action validity under partial observability, trains a critique model on them, and uses it to generate critique-aware training data for the policy. Fine-tuned Qwen3 models beat GPT-OSS-120B by >10% on Retail and gain 9% out-of-domain on Telehealth (Arizona State/Cisco).",
+      why: "Densifying sparse outcome reward into per-action supervision via a trained critic — the supervision-locality theme (DART-SD, StepGuard) arriving in mainstream tool-calling training." },
+    { topic: "Self-Evolving", title: "PaperGym: papers become low-leakage RL environments, with rubrics used twice (OPSD context, then GRPO reward)", url: "https://huggingface.co/papers/2608.31119", type: "paper", date: "2026-08-31", stars: 3,
+      summary: "Research-plan generation has no verifiable answer, so RL lacks an environment; PaperGym builds one per paper by extracting the question from goals/background and the evaluation rubric from methods/experiments, cutting criterion leakage to 3.7% (vs 11.9–34.1% in existing datasets). Training uses the rubric twice — first as privileged context for an OPSD self-teacher, then as GRPO reward — in a teach-then-explore order that beats SFT and alternative orderings by 4.8–5.6 points on Qwen 1.7B–8B; the 8B model hits 73.48 on ResearchQA, edging Kimi K2.6 (ZJU-REAL; code + PaperGym-20k released).",
+      why: "The cleanest recipe yet for manufacturing verifiable environments out of unverifiable scientific work — and rubric-conditioned self-distillation feeding RL is CriPO's idea industrialized." },
+    { topic: "Self-Evolving", title: "AutoSciRub: induce the rubric before running the research agent", url: "https://huggingface.co/papers/2608.31076", type: "paper", date: "2026-08-31", stars: 3,
+      summary: "An evaluation-first strategy for autonomous research agents on underspecified tasks: decompose the instruction into atomic scientific goals, ground them in literature and task-visible data, and synthesize specific, verifiable criteria BEFORE execution; the rubric then steers experiments and enables criterion-level verification during refinement. Gains average +2.08 across three backbone LLMs on ResearchClawBench and +16.8 across three harnesses on AstaBench.",
+      why: "With PaperGym in the same batch, \"who writes the rubric, and when\" is emerging as the control surface for self-improving research agents." },
+    { topic: "Self-Evolving", title: "WebWorld: the browser as an executable world model that certifies self-improvement data", url: "https://huggingface.co/papers/2608.30530", type: "paper", date: "2026-08-31", stars: 3,
+      summary: "When the same VLM proposes and judges web-code repairs, visual plausibility is unreliable; WebWorld compiles a VLM critique into a typed interaction contract, re-executes the candidate in a real browser, and issues an acceptance certificate only if the repair makes target progress while preserving previously verified capabilities — only certified transitions enter the SFT pool. WebWorld-27B gains +5.3 on HTMLBench-400 and +14.9 on MiniAppBench-Val, reaching parity with Kimi-K2.6/GPT-5.4; removing certification collapses gains to +0.4.",
+      why: "The ablation is the story — self-improvement without an executable verifier gains nothing; with one, a 27B matches frontier systems." },
+    { topic: "Self-Evolving", title: "Scaling Large Reasoning Models beyond Human Supervision: an L0–L4 autonomy ladder for rewards and environments", url: "https://arxiv.org/abs/2608.31075v1", type: "paper", date: "2026-08-31", stars: 3,
+      summary: "A framework paper organizing the path from human-supervised to autonomous learning along two coupled dimensions — reward development (human judgments → autonomous verifiers) and experience generation (curated → self-generated environments) — into a five-level L0–L4 ladder marking what remains under human control at each stage, with associated risks (reward hacking, curriculum collapse) and evaluation axes (policy capability, feedback quality, experience robustness).",
+      why: "A usable taxonomy for placing the entire self-evolving literature (R-Zero, J-Zero, PaperGym, harness evolution) on one autonomy axis — and for naming which human control is being removed next." },
+    { topic: "Multimodal/VLM", title: "LightNav-0: a compact VLM navigation generalist — SOTA monocular success on all 10 public sim settings", url: "https://huggingface.co/papers/2608.30935", type: "paper", date: "2026-08-31", stars: 3,
+      summary: "Unifies diverse navigation tasks by expressing spatial intent through a dual-channel pointing mechanism (task/embodiment-independent) and a residual vector-quantized action tokenizer (embodiment-specific), trained via ER mid-training → SFT → RL on 2K+ scenes / 4K+ hours. LightNav-ER tops 8 embodied-reasoning benchmarks; LightNav-0 reports state-of-the-art monocular success on all 10 public navigation sim settings with zero-shot cross-embodiment transfer (78.3% on a Unitree Go2 per coverage).",
+      why: "The pointing + action-tokenizer split is a clean answer to embodiment coupling — elicit the VLM's spatial prior once, retarget it per robot." },
+    { topic: "Multimodal/VLM", title: "MineAmongUs: VLM agents deceive more effectively with their bodies than with words", url: "https://huggingface.co/papers/2608.30428", type: "paper", date: "2026-08-31", stars: 3,
+      summary: "A 3D Among Us-style multimodal environment where VLM agents must lie both verbally and physically, plus ARIA, an agent framework ablatable across five cognitive dimensions, with deception-theory-grounded annotation. VLM agents pursue imposter wins through joint verbal and non-verbal deception — and the NON-VERBAL channel (movement, body language) is the more decisive contributor to winning (SNU/Georgia Tech).",
+      why: "Deception evals have been text-only; this shows the more effective deception channel in embodied settings is the one nobody is monitoring." },
+    { topic: "AI Safety", title: "\"The Safeguard Worked. Is the LLM System Safer?\" — local safeguard scores don't compose into deployment-safety claims", url: "https://huggingface.co/papers/2609.00519", type: "paper", date: "2026-09-01", stars: 2,
+      summary: "A position/analysis paper arguing that refusal rates, attack-success rates, and policy-violation rates measure local safeguard performance, not deployment safety, and that the evidence requirements are asymmetric: one successful attack proves residual vulnerability, while a safety claim needs system-level evidence about what the surrounding deployment still permits. Surveys safeguard papers and finds most depth-coded claims lack that system-level evidence.",
+      why: "The eval-validity critique (red-teaming lower-bounds capability) extended from capability evals to the safeguard literature itself." },
+    { topic: "OPD", title: "HypReflect: hypothesis-guided self-distillation for continual personalization", url: "https://arxiv.org/abs/2609.00251", type: "paper", date: "2026-09-01", stars: 2,
+      summary: "Applies self-distillation guided by explicit hypotheses about individual user preferences to continually personalize an LLM, per the arXiv listing. Abstract not fetchable this round; queued for backfill.",
+      why: "Self-distillation recipes spreading into continual/personalization settings, where the teacher signal must track a moving target." },
+    { topic: "Agentic RL", title: "Irreversibility Budget: metering actions that cannot be undone in LLM agent fleets", url: "https://arxiv.org/abs/2609.00275", type: "paper", date: "2026-09-01", stars: 2,
+      summary: "Starts from the observation that fleets of LLM agents now externalize effects that cannot be fully undone (moving money, deleting data) and proposes budgeting irreversibility explicitly, per the listing. Abstract not fetchable this round; queued for backfill.",
+      why: "A governance-side complement to EvoUndo's empirical finding that 1 in 3 self-modifications can't be rolled back — irreversibility as a first-class resource." },
+    { topic: "Multimodal/VLM", title: "DreamX-Creator: native joint audio-video generation at 2K resolution", url: "https://arxiv.org/abs/2608.31106", type: "release", date: "2026-08-31", stars: 2,
+      summary: "Joint (native, not stitched) audio-video synthesis at 2K resolution, framed as democratizing high-resolution multimodal generation; second-highest upvotes of the 09-01 HF batch (92). Details beyond the release framing thin this round; queued for backfill.",
+      why: "Native audio-video co-generation moving to 2K is the generation-side frontier marker of the week." }
+  ]
+};
+// ===== End of data block =====
+
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const colorOf = t => css((REPORT.topics.find(x => x.name === t) || {color:"--muted"}).color);
+
+document.getElementById("subtitle").textContent =
+  "Overnight summary · " + REPORT.date + " · " + REPORT.note;
+
+const byTopic = {};
+REPORT.topics.forEach(t => byTopic[t.name] = 0);
+REPORT.findings.forEach(f => byTopic[f.topic] = (byTopic[f.topic] || 0) + 1);
+const papers = REPORT.findings.filter(f => f.type === "paper").length;
+
+document.getElementById("tiles").innerHTML = [
+  { v: REPORT.findings.length, k: "total findings" },
+  { v: papers, k: "papers" },
+  { v: REPORT.findings.length - papers, k: "blogs / discussions" },
+  { v: REPORT.runs.length, k: "overnight runs" }
+].map(t => `<div class="tile"><div class="v">${t.v}</div><div class="k">${t.k}</div></div>`).join("");
+
+document.getElementById("tldr").innerHTML =
+  REPORT.tldr.map(t => `<li>${t}</li>`).join("");
+
+const maxN = Math.max(...Object.values(byTopic), 1);
+document.getElementById("topicbars").innerHTML = REPORT.topics.map(t => `
+  <div class="barrow">
+    <span class="lab">${t.name}</span>
+    <div class="bartrack"><div class="bar" style="width:${(byTopic[t.name]/maxN)*100}%;background:${css(t.color)}"></div></div>
+    <span class="num">${byTopic[t.name]}</span>
+  </div>`).join("");
+
+let active = "All";
+function renderFilters() {
+  document.getElementById("filters").innerHTML =
+    [`<button class="chip ${active==="All"?"active":""}" onclick="setTopic('All')">All</button>`]
+    .concat(REPORT.topics.map(t =>
+      `<button class="chip ${active===t.name?"active":""}" onclick="setTopic('${t.name}')">
+         <span class="dot" style="background:${css(t.color)}"></span>${t.name} (${byTopic[t.name]})</button>`)).join("");
+}
+function renderCards() {
+  const list = REPORT.findings
+    .filter(f => active === "All" || f.topic === active)
+    .slice().sort((a,b) => b.stars - a.stars);
+  document.getElementById("cards").innerHTML = list.map(f => `
+    <div class="card" style="border-left-color:${colorOf(f.topic)}">
+      <div class="top">
+        <h3><a href="${f.url}" target="_blank" rel="noopener">${f.title}</a></h3>
+        <span class="stars" title="importance ${f.stars}/5">${"★".repeat(f.stars)}${"☆".repeat(5-f.stars)}</span>
+      </div>
+      <div class="meta"><span class="tag">${f.topic}</span><span>${f.type}</span><span>${f.date}</span></div>
+      <p>${f.summary}</p>
+      <div class="why"><b>Why it matters:</b> ${f.why}</div>
+    </div>`).join("");
+}
+function setTopic(t) { active = t; renderFilters(); renderCards(); }
+renderFilters(); renderCards();
+
+document.getElementById("foot").textContent =
+  "autoResearch_AI · paper scan 7:00 AM · daily report 9:00 AM (US Central) · full archives in the autoResearch_AI project (claude/daily/)";
+</script>
+</body>
+</html>

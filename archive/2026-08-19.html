@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Research Daily</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7; --surface: #fcfcfb;
+    --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+    --grid: #e1e0d9; --border: rgba(11,11,11,0.10);
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7;
+    --chip-bg: #f0efec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page: #0d0d0d; --surface: #1a1a19;
+      --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+      --grid: #2c2c2a; --border: rgba(255,255,255,0.10);
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9;
+      --chip-bg: #383835;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page); color: var(--ink);
+    padding: 28px 20px 60px; max-width: 980px; margin: 0 auto;
+  }
+  nav { display: flex; gap: 16px; align-items: center; margin-bottom: 18px; font-size: 13px; flex-wrap: wrap; }
+  nav .brand { font-weight: 700; }
+  nav a { text-decoration: none; color: var(--muted); }
+  nav a.active { color: var(--ink); font-weight: 600; }
+  header { margin-bottom: 22px; }
+  h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+  .sub { color: var(--ink-2); font-size: 13.5px; margin-top: 5px; line-height: 1.5; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 20px 0; }
+  .tile { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .tile .v { font-size: 26px; font-weight: 700; }
+  .tile .k { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; margin-bottom: 18px; }
+  .panel h2 { font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: 12px; }
+  .barrow { display: grid; grid-template-columns: 150px 1fr 30px; align-items: center; gap: 10px; margin: 7px 0; font-size: 12.5px; }
+  .barrow .lab { color: var(--ink-2); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bartrack { height: 14px; position: relative; }
+  .bar { height: 14px; border-radius: 0 4px 4px 0; }
+  .barrow .num { font-variant-numeric: tabular-nums; color: var(--ink-2); }
+  .tldr li { margin: 8px 0 8px 0; line-height: 1.55; font-size: 13.5px; color: var(--ink); }
+  .tldr { padding-left: 18px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 14px; }
+  .chip {
+    border: 1px solid var(--border); background: var(--chip-bg); color: var(--ink-2);
+    border-radius: 999px; padding: 6px 13px; font-size: 12.5px; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  .chip .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .chip.active { background: var(--ink); color: var(--page); border-color: var(--ink); }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; margin-bottom: 10px; border-left: 4px solid var(--grid);
+  }
+  .card .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .card h3 { font-size: 14.5px; font-weight: 600; line-height: 1.4; }
+  .card h3 a { color: inherit; text-decoration: none; }
+  .card h3 a:hover { text-decoration: underline; }
+  .meta { font-size: 11.5px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  .stars { color: var(--s4); font-size: 12px; letter-spacing: 1px; white-space: nowrap; }
+  .card p { font-size: 13px; color: var(--ink-2); line-height: 1.55; margin-top: 8px; }
+  .why { font-size: 12.5px; margin-top: 7px; color: var(--ink); }
+  .why b { font-weight: 600; }
+  .tag { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--chip-bg); color: var(--ink-2); }
+  footer { margin-top: 26px; font-size: 12px; color: var(--muted); line-height: 1.6; }
+</style>
+</head>
+<body>
+<nav>
+  <span class="brand">autoResearch_AI</span>
+  <a href="../" class="active">Daily Report</a>
+  <a href="../nightly/">Paper Scan</a>
+</nav>
+<header>
+  <h1>AI Research Daily</h1>
+  <div class="sub" id="subtitle"></div>
+</header>
+
+<div class="tiles" id="tiles"></div>
+
+<div class="panel">
+  <h2>TL;DR — Top picks today</h2>
+  <ul class="tldr" id="tldr"></ul>
+</div>
+
+<div class="panel">
+  <h2>Findings by topic</h2>
+  <div id="topicbars"></div>
+</div>
+
+<div class="filters" id="filters"></div>
+<div id="cards"></div>
+
+<footer id="foot"></footer>
+
+<script>
+// ===== Replaced daily by the morning-report agent. ALL content in English. =====
+const REPORT = {
+  date: "2026-08-19",
+  note: "Paper scan: 18 items across 7 topics (Tuesday round; OpenAI pauses Astra's frontier RL run and rewrites its Preparedness Framework, Anthropic ships lab-validated protein binders, and the harness becomes a first-class object across training/eval/deployment)",
+  runs: ["Paper scan 07:00 (18 items)"],
+  tldr: [
+    "★4 OpenAI answered the 'disbanded Preparedness team' cycle within 24 hours (Axios, 08-18): it is rewriting its 2023 Preparedness Framework, has paused two weeks of deployment-focused RL training on Astra — an unreleased system that crossed a critical cybersecurity capability threshold — and is holding its largest planned frontier RL run until tougher security standards are met, while denying the team was disbanded. Three days after Anthropic raised its risk tier (08-14), both leading labs have now visibly gated frontier training or release on safety thresholds.",
+    "★4 Anthropic shipped lab-validated protein-binder results (08-18): operating through Claude Science with minimal human intervention, Claude designed binders against 14 of 15 diverse targets at 22.6–35.1% hit rates versus the 10–15% industry standard, matching or beating best reported affinity on at least four targets. The capability is labeled dual-use and explicitly restricted in Claude Fable 5 pending trusted-access programs — the credential-gated remedy the dual-use trilemma paper argued for, deployed on the same capability class.",
+    "★4 MOSS-VL makes perceiving-while-speaking a first-class capability (HF 436 upvotes, top of the batch): vision enters the decoder only through gated cross-attention, so the model keeps watching incoming frames during generation. Best average on 3 of 4 streaming benchmarks, a sweep of all three proactive subsets (66.0 vs 37.5 on OmniMMI Proactive Alerting), and a time-to-first-token lead over same-backbone Qwen3-VL-8B that widens from 2.8× to 5.1× as visual context grows. All five checkpoints, the curriculum, and real-time inference code released.",
+    "★4 AlphaEvolve helps push the matrix-multiplication exponent to ω < 2.371177 (from 2.371339): a DeepMind team with the complexity theorists who held the prior record reformulated the laser-method combination-loss optimization and used AlphaEvolve as a refinement step. The first ω improvement with an AI system in the loop — moving evolutionary code search from benchmark tasks to a four-decade-old open problem.",
+    "★3 [project-related] The harness becomes a first-class object in one batch, across training, evaluation, and deployment: StateM scales the harness (not the model) to 95.3% raw accuracy on Terminal-Bench 2.1 and transfers unchanged across model generations; ClawGym II makes opaque production harnesses RL-trainable as black boxes; HarnessEval-W ports the paradigm to world-model evaluation. The one project-relevant OPD paper, StreamOPD (thinking-mode OPD + teacher-privilege likelihood-ratio reweighting for streaming video), had zero collisions with the lab's draft."
+  ],
+  topics: [
+    { name: "Post-training", color: "--s1" },
+    { name: "OPD", color: "--s2" },
+    { name: "AI Safety", color: "--s3" },
+    { name: "Agentic RL", color: "--s4" },
+    { name: "Self-Evolving", color: "--s5" },
+    { name: "Multimodal/VLM", color: "--s6" },
+    { name: "MoE", color: "--s7" }
+  ],
+  findings: [
+    { topic: "AI Safety", title: "OpenAI rewrites its Preparedness Framework and pauses Astra's frontier RL run at a cyber capability threshold", url: "https://www.axios.com/2026/08/18/openai-pause-astra-preparedness-framework", type: "discussion", date: "2026-08-18", stars: 4,
+      summary: "One day after the 'Preparedness team disbanded' cycle, OpenAI said it is rewriting the 2023 framework — stronger monitoring throughout development, safeguards introduced earlier, heightened protections during post-training scaling. Concretely: Astra, an unreleased system, reached a critical cybersecurity threshold; OpenAI paused two weeks of deployment-focused RL training, is holding its largest planned frontier RL run until tougher security standards are met, and shifted compute toward understanding how its systems reason after the Hugging Face incident. It separately denied the Preparedness team was 'disbanded,' describing a redistribution of the work.",
+      why: "Resolves the post-Preparedness watch in an unexpected direction — within one news cycle, both leading labs (Anthropic 08-14, OpenAI 08-18) have publicly gated frontier training or release on safety thresholds." },
+    { topic: "AI Safety", title: "Anthropic: Claude designs lab-validated protein binders against 14 of 15 targets, at 2–3× industry hit rates", url: "https://www.anthropic.com/research/Claude-accelerates-protein-design", type: "blog", date: "2026-08-18", stars: 4,
+      summary: "Through Claude Science with minimal human intervention, Claude autonomously orchestrated open-source protein-design and folding models to design binders against 14 of 15 diverse targets (BenchBB plus novel competition targets like 15-PGDH and GDF-8 chosen to avoid training-data bias), with hit rates of 22.6–35.1% vs the typical 10–15%, matching or exceeding best reported affinity on at least four targets. Separately, Claude Opus 5 processed raw NMR and LC-MS files in ~23 and ~19 minutes, matching a contract lab's purity analysis (96.4% vs 96.33%).",
+      why: "A frontier-lab capability announcement that ships with its own trusted-access restriction — the credential-based remedy the dual-use trilemma paper argued for, deployed in practice on the same capability class (explicitly restricted in Claude Fable 5)." },
+    { topic: "Multimodal/VLM", title: "MOSS-VL: streaming interaction as a first-class capability, with the full recipe released", url: "https://arxiv.org/abs/2608.15045", type: "paper", date: "2026-08-19", stars: 4,
+      summary: "MOSS-VL treats perceiving-while-speaking as the design center: vision enters the decoder only through gated cross-attention, so the model keeps watching incoming frames during generation. Among open-source streaming models it posts the best average on 3 of 4 streaming benchmarks and sweeps all three proactive subsets (66.0 vs 37.5 on OmniMMI Proactive Alerting), while widening its time-to-first-token advantage over same-backbone Qwen3-VL-8B from 2.8× to 5.1× as visual context grows. All five checkpoints, the training curriculum, and real-time inference code are released. Top of the batch at 436 upvotes.",
+      why: "Proactive streaming perception — the model deciding when to speak — is the capability gap between VLMs and assistants that watch; this is the most complete open recipe for it." },
+    { topic: "Self-Evolving", title: "AlphaEvolve helps push the matrix multiplication exponent to ω < 2.371177", url: "https://arxiv.org/abs/2608.16884", type: "paper", date: "2026-08-19", stars: 4,
+      summary: "A ten-author team (DeepMind with the complexity theorists who held the prior record — Alman, Vassilevska Williams, Zhou) improves the matrix-multiplication exponent upper bound from 2.371339 to ω < 2.371177 by reformulating the combination-loss optimization inside the laser method, designing a new ML-based optimization algorithm, and using AlphaEvolve as a refinement step.",
+      why: "An evolutionary code-search agent now contributes to a headline result in pure theory — the first ω improvement with an AI system in the loop, moving AlphaEvolve's discovery claims from benchmark tasks to a four-decade-old open problem." },
+    { topic: "OPD", title: "StreamOPD: thinking-mode on-policy distillation with spatio-temporal cue gating for streaming video", url: "https://arxiv.org/abs/2608.16320", type: "paper", date: "2026-08-19", stars: 3,
+      summary: "[project-related] For streaming video understanding (direct answers from the causal prefix, no think-then-answer), RLVR fits poorly and a training-free sliding window already matches memory/retrieval systems — so the recipe is thinking-mode OPD against a 9B teacher with instruct-mode deployment, raising StreamingBench 77.9%→83.9% (within 0.3 of the teacher). The teacher-privilege extension, ST-CueGate, aggregates cue-vs-no-cue teacher likelihood ratios into a group-relative response score that reweights OPD — the only variant above the base model on all four benchmarks. A frozen copy of the student's initial policy as self-teacher retains most gains and lifts hallucination detection to 57.0%.",
+      why: "Another selective-guidance/gate-family entry — teacher privilege delivered as likelihood-ratio reweighting of the OPD objective, plus an independent 'frozen-initial-policy self-teacher nearly suffices' datapoint; streaming-video setting, no capacity-gap axis, no collision with the lab draft." },
+    { topic: "Agentic RL", title: "StateM: 95.3% raw accuracy on Terminal-Bench 2.1 via harness scaling, transferring unchanged across models", url: "https://arxiv.org/abs/2608.15089", type: "paper", date: "2026-08-19", stars: 3,
+      summary: "Positions 'harness scaling' as an alternative axis to model scaling: on Terminal-Bench 2.1, StateM raises GPT-5.5 xhigh from the 83.1% reference to 92.1% (above GPT-5.6 Sol Ultra's 91.9%), and the runbook transfers unchanged to GPT-5.6 — where StateM with GPT-5.6 Sol xhigh reaches 95.3% raw accuracy across 445 trials, succeeding on all 89 tasks at least once. Framed alternatively as a $15 frontier-grade run.",
+      why: "The strongest quantitative case yet for the harness-as-the-variable thesis — a scaffold change worth more than a model-generation upgrade, and portable across models." },
+    { topic: "Agentic RL", title: "ClawGym II: black-box RL through complex agent harnesses", url: "https://arxiv.org/abs/2608.16798", type: "paper", date: "2026-08-19", stars: 3,
+      summary: "Makes opaque harnesses RL-trainable: sandboxed concurrent rollouts, a serving proxy at the model boundary capturing all model calls, prefix-tree reconstruction of multi-turn trajectories, and PPO/GRPO adapted to optimize over the recovered tree — plus mix-harness training so one model is jointly optimized through heterogeneous harnesses. With Qwen3-30A3B, Pass@1 on ClawGym-Bench improves +9.98 through OpenClaw and +14.81 through Claude Code, stable over 200–400 steps, with consistent gains on JobBench and Office tasks.",
+      why: "Closes the loop between the harness thread and training — instead of evolving the harness around a frozen model or scaling it, the model is trained through the production harness it will actually run in." },
+    { topic: "Agentic RL", title: "How Do Agents Fail on AutoResearch: the bottleneck is metacognition, not capability", url: "https://arxiv.org/abs/2608.14905", type: "paper", date: "2026-08-19", stars: 3,
+      summary: "Stress-tests agents on 100 real frontier-research tasks (800 trajectories, 8 harness×model combinations) with end-to-end diagnostic evaluation, releasing ARFT, a 45-mode failure taxonomy. The headline claim: every failure traces back to the inability to self-doubt and self-correct — metacognition, not raw capability, is the binding constraint on autonomous research.",
+      why: "A single-cause diagnosis to test against Beyond Final Scores' multi-bottleneck picture (same week, same task class) — and a direct measurement substrate for the autonomous-research thread." },
+    { topic: "Multimodal/VLM", title: "HarnessEval-W: agentifying the evaluation of visual worlds", url: "https://arxiv.org/abs/2608.16859", type: "paper", date: "2026-08-19", stars: 3,
+      summary: "Brings the harness paradigm to world-model benchmarking: instead of a fixed rubric, the pipeline interprets each evaluation case, decomposes the question into measurable sub-questions, and spawns specialized sub-agents with tailored context and diagnostic tools; a parent agent validates and aggregates the evidence into a verdict, making every evaluation a transparent evidence tree. HF 132 upvotes.",
+      why: "A concrete answer to the 'fixed-script world-model evaluation is invalid' critique — and the third harness-paradigm expansion in one batch (training: ClawGym II; deployment: StateM; now evaluation)." },
+    { topic: "Post-training", title: "SA-MRPO: saturation-aware advantage reweighting for multi-reward policy optimization", url: "https://arxiv.org/abs/2608.16072", type: "paper", date: "2026-08-19", stars: 3,
+      summary: "Fixed-weight scalarization of multi-reward vectors before group-wise standardization gives distinct reward profiles identical advantages and keeps spending gradient on already-saturated objectives. SA-MRPO standardizes each objective independently and adaptively discounts by a batch-level saturation estimate — which can reverse an update's sign, not just rescale it. Improves the harder correctness objective over GDPO in 12 of 15 benchmark comparisons, up to +5% on AIME24.",
+      why: "Multi-reward post-training is the norm (correctness + length + format), and this is a clean account of why fixed scalarization silently misallocates the gradient budget." },
+    { topic: "Post-training", title: "R³-Bench: LLMs cannot allocate a shared reasoning budget", url: "https://arxiv.org/abs/2608.16033", type: "paper", date: "2026-08-19", stars: 3,
+      summary: "Six-problem contests where math, competitive programming, and abstract reasoning compete for one shared token/action budget, with a same-model empirical oracle separating competence from allocation. The oracle strictly beats the model's own allocation in 71 of 72 main-result cells (a tie in one); lightweight schedulers help in 6 of 9 strong-pressure cases but no scheduler works universally. Code and dataset released.",
+      why: "The reasoning-efficiency thread measured at portfolio level — models leave large headroom purely in where they spend, before any single-problem improvement." },
+    { topic: "Self-Evolving", title: "Large Discovery Models: empirically-grounded model-based open-ended search", url: "https://arxiv.org/abs/2608.15669", type: "paper", date: "2026-08-19", stars: 3,
+      summary: "Frames discovery as repeated rounds of proposing, testing, and learning: LDM uses every experimental result to focus the next round of proposals, finding promising programs, proteins, and molecules with fewer trials than open-ended search that does not condition on accumulated evidence. HF 15 upvotes.",
+      why: "The self-improvement loop applied to external discovery targets rather than the agent itself — sample-efficient closed-loop search is the scaling bottleneck for AI-driven science (cf. Anthropic's binder campaign, same day)." },
+    { topic: "Self-Evolving", title: "PACE-Bench: can self-evolving agents recover when the environment's physics change?", url: "https://arxiv.org/abs/2608.14441", type: "paper", date: "2026-08-19", stars: 3,
+      summary: "Most self-evolution benchmarks keep execution conditions fixed, so accumulated experience never goes stale. PACE-Bench evaluates physics adaptation via code evolution in dynamic environments — the test is whether an agent whose past solutions stop working can detect the shift and recover. THUNLP; code + benchmark released.",
+      why: "Directly targets the failure mode the memory thread keeps flagging (negative transfer, drift) — experience reuse is only worth its cost if agents notice when experience expires." },
+    { topic: "MoE", title: "UniF-MoE: extract shared blocks first, route only what remains", url: "https://arxiv.org/abs/2608.10392", type: "paper", date: "2026-08-11", stars: 3,
+      summary: "Argues shared-expert extraction and routing are interdependent — extracting reusable computation changes both what remains and how much expert capacity the remainder needs — and orders them by principle: shared components first, routing after. Experts are partitioned into aligned blocks; a shared-demand score sets shared block counts and pathway weights, key prototypes identify shared content, and a Gram regularizer separates and normalizes router embeddings for diverse routing directions. On DomainBed and GLUE it improves accuracy while cutting activated compute, latency, and memory vs static and dynamic MoE baselines; code released.",
+      why: "The shared-vs-routed split treated as an optimization target rather than a fixed design choice — token-adaptive computation inside the expert, not just across experts." },
+    { topic: "AI Safety", title: "Ventor-QTest: black-box audits of vendor-hosted LLM APIs, and extreme fidelity loss predicts agentic failures", url: "https://arxiv.org/abs/2608.16391", type: "paper", date: "2026-08-19", stars: 3,
+      summary: "Formalizes hosted-model routing as a stochastic process and audits it without logprobs: a repeated-request component reconstructs output distributions from text counts (average fidelity loss, a bias-corrected coarsened-KL statistic) and a long-sequence component captures the extreme tail (EFL). Across route snapshots, AFL tracks a logprob-derived comparator; neither statistic correlates with GPQA-Diamond accuracy — but pronounced EFL coincides with declining Terminal-Bench pass rates as task exposure grows, consistent with long-horizon correctness being sensitive to rare fidelity failures.",
+      why: "Third-party hosting of open-weight models is now core infrastructure, and this gives users a statistical audit for silent quantization/routing degradation — with evidence that agentic workloads are where degradation actually bites." },
+    { topic: "AI Safety", title: "Prior audit-repair context makes LLM verifiers lenient, not smarter", url: "https://arxiv.org/abs/2608.16003", type: "paper", date: "2026-08-19", stars: 3,
+      summary: "A completed audit→repair episode already in context lowers a verifier's false alarms by 2.8–11.5pp against a length-matched control in 15 of 15 model×wording combinations with the present task byte-identical — but discrimination (d') improves in 0 of 15: the threshold moves, the accuracy doesn't. An episode whose audit reported an error makes the verifier more lenient still, the opposite of what accumulated-context accounts predict. Code released.",
+      why: "A sharp practical warning for self-verification pipelines (agent code review, Ouroboros-style gating): don't let the verifier judge the kind of repair it just performed — its criterion has already shifted." },
+    { topic: "Multimodal/VLM", title: "VibeWorlding: agentic RL for end-to-end 3D open-world construction", url: "https://arxiv.org/abs/2608.15265", type: "paper", date: "2026-08-19", stars: 2,
+      summary: "The first agentic-RL framework for end-to-end 3D world construction: 2,616 annotated 3D assets, 323 seed worlds, 6,828 user queries, an asset-retrieval embedding model, an interactive sandbox, a dual-constraint verifier, and a unified post-training framework spanning SFT and multimodal RL. HF 52 upvotes.",
+      why: "3D world construction joins the verifier-gated agentic-RL pattern — the dual-constraint verifier is what makes an open-ended creative task RL-trainable at all." },
+    { topic: "MoE", title: "TAOT: expert replica placement as topology-aware optimal transport, 1.43× MoE training speedup", url: "https://arxiv.org/abs/2608.03676", type: "paper", date: "2026-08-03", stars: 2,
+      summary: "Load-balancing work that stops ignoring the network: expert replica placement is formulated as entropy-regularized optimal transport with a communication-cost matrix and solved by Sinkhorn-Knopp, copying overloaded experts onto underutilized processors while minimizing cross-node transfer, with weight transfers overlapped against compute. End-to-end MoE training speeds up 1.43× with up to 74% lower weighted expert-communication cost, at load-balance quality matching or beating existing methods.",
+      why: "The load-balancing literature has mostly optimized token counts; making placement communication-topology-aware attacks the term that actually bills the wall clock." }
+  ]
+};
+// ===== End of data block =====
+
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const colorOf = t => css((REPORT.topics.find(x => x.name === t) || {color:"--muted"}).color);
+
+document.getElementById("subtitle").textContent =
+  "Overnight summary · " + REPORT.date + " · " + REPORT.note;
+
+const byTopic = {};
+REPORT.topics.forEach(t => byTopic[t.name] = 0);
+REPORT.findings.forEach(f => byTopic[f.topic] = (byTopic[f.topic] || 0) + 1);
+const papers = REPORT.findings.filter(f => f.type === "paper").length;
+
+document.getElementById("tiles").innerHTML = [
+  { v: REPORT.findings.length, k: "total findings" },
+  { v: papers, k: "papers" },
+  { v: REPORT.findings.length - papers, k: "blogs / discussions" },
+  { v: REPORT.runs.length, k: "overnight runs" }
+].map(t => `<div class="tile"><div class="v">${t.v}</div><div class="k">${t.k}</div></div>`).join("");
+
+document.getElementById("tldr").innerHTML =
+  REPORT.tldr.map(t => `<li>${t}</li>`).join("");
+
+const maxN = Math.max(...Object.values(byTopic), 1);
+document.getElementById("topicbars").innerHTML = REPORT.topics.map(t => `
+  <div class="barrow">
+    <span class="lab">${t.name}</span>
+    <div class="bartrack"><div class="bar" style="width:${(byTopic[t.name]/maxN)*100}%;background:${css(t.color)}"></div></div>
+    <span class="num">${byTopic[t.name]}</span>
+  </div>`).join("");
+
+let active = "All";
+function renderFilters() {
+  document.getElementById("filters").innerHTML =
+    [`<button class="chip ${active==="All"?"active":""}" onclick="setTopic('All')">All</button>`]
+    .concat(REPORT.topics.map(t =>
+      `<button class="chip ${active===t.name?"active":""}" onclick="setTopic('${t.name}')">
+         <span class="dot" style="background:${css(t.color)}"></span>${t.name} (${byTopic[t.name]})</button>`)).join("");
+}
+function renderCards() {
+  const list = REPORT.findings
+    .filter(f => active === "All" || f.topic === active)
+    .slice().sort((a,b) => b.stars - a.stars);
+  document.getElementById("cards").innerHTML = list.map(f => `
+    <div class="card" style="border-left-color:${colorOf(f.topic)}">
+      <div class="top">
+        <h3><a href="${f.url}" target="_blank" rel="noopener">${f.title}</a></h3>
+        <span class="stars" title="importance ${f.stars}/5">${"★".repeat(f.stars)}${"☆".repeat(5-f.stars)}</span>
+      </div>
+      <div class="meta"><span class="tag">${f.topic}</span><span>${f.type}</span><span>${f.date}</span></div>
+      <p>${f.summary}</p>
+      <div class="why"><b>Why it matters:</b> ${f.why}</div>
+    </div>`).join("");
+}
+function setTopic(t) { active = t; renderFilters(); renderCards(); }
+renderFilters(); renderCards();
+
+document.getElementById("foot").textContent =
+  "autoResearch_AI · paper scan 7:00 AM · daily report 9:00 AM (US Central) · full archives in the autoResearch_AI project (claude/daily/)";
+</script>
+</body>
+</html>

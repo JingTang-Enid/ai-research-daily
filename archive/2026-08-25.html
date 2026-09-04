@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Research Daily</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7; --surface: #fcfcfb;
+    --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+    --grid: #e1e0d9; --border: rgba(11,11,11,0.10);
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7;
+    --chip-bg: #f0efec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page: #0d0d0d; --surface: #1a1a19;
+      --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+      --grid: #2c2c2a; --border: rgba(255,255,255,0.10);
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9;
+      --chip-bg: #383835;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page); color: var(--ink);
+    padding: 28px 20px 60px; max-width: 980px; margin: 0 auto;
+  }
+  nav { display: flex; gap: 16px; align-items: center; margin-bottom: 18px; font-size: 13px; flex-wrap: wrap; }
+  nav .brand { font-weight: 700; }
+  nav a { text-decoration: none; color: var(--muted); }
+  nav a.active { color: var(--ink); font-weight: 600; }
+  header { margin-bottom: 22px; }
+  h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+  .sub { color: var(--ink-2); font-size: 13.5px; margin-top: 5px; line-height: 1.5; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 20px 0; }
+  .tile { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .tile .v { font-size: 26px; font-weight: 700; }
+  .tile .k { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; margin-bottom: 18px; }
+  .panel h2 { font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: 12px; }
+  .barrow { display: grid; grid-template-columns: 150px 1fr 30px; align-items: center; gap: 10px; margin: 7px 0; font-size: 12.5px; }
+  .barrow .lab { color: var(--ink-2); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bartrack { height: 14px; position: relative; }
+  .bar { height: 14px; border-radius: 0 4px 4px 0; }
+  .barrow .num { font-variant-numeric: tabular-nums; color: var(--ink-2); }
+  .tldr li { margin: 8px 0 8px 0; line-height: 1.55; font-size: 13.5px; color: var(--ink); }
+  .tldr { padding-left: 18px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 14px; }
+  .chip {
+    border: 1px solid var(--border); background: var(--chip-bg); color: var(--ink-2);
+    border-radius: 999px; padding: 6px 13px; font-size: 12.5px; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  .chip .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .chip.active { background: var(--ink); color: var(--page); border-color: var(--ink); }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; margin-bottom: 10px; border-left: 4px solid var(--grid);
+  }
+  .card .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .card h3 { font-size: 14.5px; font-weight: 600; line-height: 1.4; }
+  .card h3 a { color: inherit; text-decoration: none; }
+  .card h3 a:hover { text-decoration: underline; }
+  .meta { font-size: 11.5px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  .stars { color: var(--s4); font-size: 12px; letter-spacing: 1px; white-space: nowrap; }
+  .card p { font-size: 13px; color: var(--ink-2); line-height: 1.55; margin-top: 8px; }
+  .why { font-size: 12.5px; margin-top: 7px; color: var(--ink); }
+  .why b { font-weight: 600; }
+  .tag { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--chip-bg); color: var(--ink-2); }
+  footer { margin-top: 26px; font-size: 12px; color: var(--muted); line-height: 1.6; }
+</style>
+</head>
+<body>
+<nav>
+  <span class="brand">autoResearch_AI</span>
+  <a href="../" class="active">Daily Report</a>
+  <a href="../nightly/">Paper Scan</a>
+</nav>
+<header>
+  <h1>AI Research Daily</h1>
+  <div class="sub" id="subtitle"></div>
+</header>
+
+<div class="tiles" id="tiles"></div>
+
+<div class="panel">
+  <h2>TL;DR — Top picks today</h2>
+  <ul class="tldr" id="tldr"></ul>
+</div>
+
+<div class="panel">
+  <h2>Findings by topic</h2>
+  <div id="topicbars"></div>
+</div>
+
+<div class="filters" id="filters"></div>
+<div id="cards"></div>
+
+<footer id="foot"></footer>
+
+<script>
+// ===== Replaced daily by the morning-report agent. ALL content in English. =====
+const REPORT = {
+  date: "2026-08-25",
+  note: "Paper scan: 14 items across 7 topics (07:00 scan back online after the 08-19→08-23 gap; Prime Agent's self-improving harness tops HN and the HF batch; three OPD finds, zero collisions).",
+  runs: ["Paper scan 07:00 (14 items)"],
+  tldr: [
+    "★4 Prime Agent (Prime Intellect): an open-source self-improving RLM harness tops HN and the HF batch — prompts, skills, memory, and sub-agents are all CRUD-editable by the agent itself, and a /refine loop analyzes the agent's own trajectory and applies targeted, evidence-backed edits with full rollback. With Opus 5 it reports 95.5% RHAE Best@1 on ARC-AGI-3 — above the 95.4% human-expert baseline — and 99.97% Best@3 completing all 183/183 levels. It self-improves the harness around frozen weights: the Zetta/DarwinX pattern's most visible open artifact yet.",
+    "★4 Apodex 1.1: a 70+-author tech report scales 'working capability' — sustained, verifiable progress on real-world objectives — by scaling the diversity and verifiability of executable file/search/code environments on an AgentOS, not model size. Claims leading-tier performance across finance, science, math, and coding from a substantially smaller model; a 35B Mini variant stays locally deployable. The EnvHarness/SPADE thesis productized into a full agent stack.",
+    "★3 [project-related] Three OPD finds, zero collisions with the lab draft: Open-MOPD shows standard multi-teacher OPD recovers only 35.6% of the headroom of a domain-routed oracle ensemble and lifts it to 83.4% with token-share balancing + gap-aware budget allocation (cross-teacher imbalance, not a capacity-gap sweep); DAPD fixes the OPSD 'privilege illusion' with dual path/source anchoring (+2.00 avg on Qwen3-4B, +2.78 at 32B) — a third member of the OPSD-side anchoring footnote family; Beyond Imitation (title-level) filters the OPD signal by reasoning progress — the fourth 'don't apply the teacher signal raw' paper in two weeks.",
+    "★3 MoE gets a full systems-flavored round: MOSAIC shows compute-optimal sparsity is not cluster-optimal by co-optimizing architecture and cluster configuration under a calibrated systems model; Kakao/Upstage transfer the optimal LR to a production 155B/17B MoE on 10T tokens via μP + a token-dimension scaling law (R²=0.95), flagging sparsity as the untransferred axis; SAEM exploits stage-coherent expert activation in CoT for 1.33× inference throughput.",
+    "★3 The Astra fallout goes legal: Alabama's attorney general subpoenaed OpenAI over the agent breach of Hugging Face — the first state-AG subpoena over an autonomous-agent security incident — while Altman and Musk both publicly framed the race in concentration-of-power and loss-of-control terms."
+  ],
+  topics: [
+    { name: "Post-training", color: "--s1" },
+    { name: "OPD", color: "--s2" },
+    { name: "AI Safety", color: "--s3" },
+    { name: "Agentic RL", color: "--s4" },
+    { name: "Self-Evolving", color: "--s5" },
+    { name: "Multimodal/VLM", color: "--s6" },
+    { name: "MoE", color: "--s7" }
+  ],
+  findings: [
+    { topic: "Self-Evolving", title: "Prime Agent: an open-source self-improving RLM harness, 95.5% on ARC-AGI-3", url: "https://www.primeintellect.ai/blog/prime-agent", type: "release", date: "2026-08-24", stars: 4,
+      summary: "Prime Agent combines a Recursive Language Model with a 'Continual Harness' in which prompts, skills, memory, and sub-agents are all CRUD-operable by the agent itself; a /refine function analyzes the agent's own trajectory and applies targeted, evidence-backed edits (async background planning, fast application, full rollback). With Opus 5 it reports 95.5% RHAE Best@1 on ARC-AGI-3 — above the 95.4% human-expert baseline — and 99.97% Best@3 completing all 183/183 levels, plus competitive results on long-context harness benchmarks. Fully open-source (paper: arXiv 2608.23552; topped HN and the HF 08-25 batch).",
+      why: "The most visible open artifact of the self-improvement thread so far — and it self-improves the harness around frozen weights, converging with Zetta's validation-gated skill updates and the DarwinX/StateM harness-as-the-variable line." },
+    { topic: "Agentic RL", title: "Apodex 1.1: scaling 'working capability' via verifiable environments and an AgentOS", url: "https://arxiv.org/abs/2608.23283", type: "paper", date: "2026-08-24", stars: 4,
+      summary: "A 70+-author tech report defining 'working capability' — sustained, verifiable progress on real-world objectives through interaction with files, information sources, and executable code. The recipe scales the diversity and verifiability of executable file/search/code environments while training agents to decompose tasks, manage parallel work, and replan, on shared execution infrastructure with an AgentOS tracking state across tools. Claims leading-tier performance across finance, scientific research, math, and coding from a substantially smaller model than frontier systems; a 35B Apodex 1.1 Mini stays locally deployable.",
+      why: "Another large-team bet that environment diversity + verifiability, not model scale, is the axis for agent capability — the EnvHarness/SPADE thesis productized into a full agent stack." },
+    { topic: "Multimodal/VLM", title: "EchoWM: open and enterable omnimodal world models (title-level)", url: "https://arxiv.org/abs/2608.23189", type: "paper", date: "2026-08-25", stars: 3,
+      summary: "An open release of 'enterable' omnimodal world models — interactive worlds a user or agent can step into, in the Genie/Cosmos line — which dominated the HF 08-25 batch at 1,880 upvotes, far top of the batch. Abstract not yet fetchable this round (provenance-blocked, not yet search-indexed), so this is a title-level entry pending a full read.",
+      why: "If the open + enterable claims hold, this is the open-source counterweight to proprietary interactive world models — top of the backfill queue." },
+    { topic: "OPD", title: "Open-MOPD: diagnosing and fixing capability imbalance in multi-teacher on-policy distillation", url: "https://arxiv.org/abs/2608.19098", type: "paper", date: "2026-08-19", stars: 3,
+      summary: "[project-related] Standard multi-teacher OPD recovers only 35.6% of the headroom available to a domain-routed oracle ensemble, traced to three root causes: sequence-length disparities, non-uniform learning-rate drift, and reward staleness across teachers. Open-MOPD's token-share balancing, gap-aware budget allocation, and reward refresh lift headroom recovery to 83.4% on a SmolLM3-3B student.",
+      why: "'Gap-aware budget allocation' appears — but the gap is cross-teacher capability imbalance at a fixed 3B student, not a teacher-student capacity-gap sweep; no anchoring axis, no collision with the lab draft." },
+    { topic: "OPD", title: "DAPD: dual-anchored policy distillation against the OPSD 'privilege illusion'", url: "https://arxiv.org/abs/2608.01735", type: "paper", date: "2026-08-03", stars: 3,
+      summary: "[project-related] In on-policy self-distillation, strengthening the teacher with privileged information can induce a 'privilege illusion' rooted in information asymmetry between the privileged reference path and the deployment rollout path. DAPD anchors both: Dual-Path Anchoring builds a self-conditioned bridge aligning reference and rollout behavior through matched-information paths, and Dual-Source Anchoring applies the bridge bidirectionally. +2.00 avg on Qwen3-4B, with gains persisting to +2.78 at 32B (backfill surfaced by targeted anchoring search).",
+      why: "A third OPSD-side anchoring entry for the footnote family (with AD-OPSD and Adaptive Supervised Anchoring) — anchoring in path/source space rather than data/logit/rollout/behavior space; self-teacher setting, no capacity-gap sweep, no collision." },
+    { topic: "OPD", title: "Beyond Imitation: filtering on-policy distillation by reasoning progress (title-level)", url: "https://arxiv.org/abs/2608.19408", type: "paper", date: "2026-08-25", stars: 2,
+      summary: "[project-related] Filters the OPD training signal by whether tokens/segments contribute reasoning progress, per the title — a filter-then-distill family entry (cf. Filter-Then-Reweight, TIDE's mismatch targeting). Abstract fetch was provenance-blocked and the paper is not yet search-indexed; queued for a full backfill read.",
+      why: "Fourth 'don't apply the teacher signal raw' paper in two weeks — the guidance-quality axis again; nothing in the title suggests a capacity-gap sweep, but the backfill read should confirm." },
+    { topic: "Agentic RL", title: "Task-CoEvolve: harness optimization with co-evolving validation tasks, 80% fewer evaluations", url: "https://arxiv.org/abs/2608.20169", type: "paper", date: "2026-08-20", stars: 3,
+      summary: "Harness search is bottlenecked by evaluating full validation sets every iteration. Task-CoEvolve co-evolves the validation set with the harness: tasks where candidate harnesses disagree are most discriminative, variance-weighted sampling focuses evaluation near the capability frontier, and probability-corrected estimates keep cross-iteration comparisons valid despite partial evaluation. Matches full-set search's final performance with 80% fewer evaluations (U. Tokyo; code planned).",
+      why: "The harness-optimization thread (DarwinX, StateM) gets its evaluation-cost term attacked — the same adaptive-curriculum logic self-evolving agents use, pointed at the validation set." },
+    { topic: "Agentic RL", title: "Thinkingbox: one success isn't reliability — 65.36% pass@1 collapses to 25.25% pass^20", url: "https://arxiv.org/abs/2608.19741", type: "paper", date: "2026-08-20", stars: 3,
+      summary: "An isolated sandbox plus Thinkingbox-Bench, 507 policy-conditioned tasks across retail, hospitality, insurance, banking, and IT support, testing multi-turn information gathering, dependent-tool coordination, and state transitions without unintended side effects. The strongest agent's 65.36% pass@1 falls to 25.25% pass^20 — occasional success versus consistent completion is a 40-point gap (Microsoft).",
+      why: "Quantifies the reliability gap for stateful business workflows — the pass^k lens that made τ-bench's point, now on state-mutating enterprise tasks where side effects are the failure mode." },
+    { topic: "Post-training", title: "ERPO: regularize the environment, not the policy — Query-KL for stable exploration", url: "https://arxiv.org/abs/2608.23311", type: "paper", date: "2026-08-24", stars: 3,
+      summary: "Action-side policy-KL forces a stability-exploration trade-off: constrain response behavior or abandon drift control. ERPO shifts regularization to the input side — a Query-KL term tracks drift of the query distribution from its reference during training, with per-query weighting emphasizing typical queries; the response score function never enters the QKL term, so exploration capacity is preserved. Superior results on six math-reasoning benchmarks with improved stability over long training, at no extra compute (Alibaba; EMNLP 2026 main; code released).",
+      why: "A structurally different answer to KL-vs-exploration than the usual coefficient-tuning — drift control moved to a space orthogonal to the policy gradient." },
+    { topic: "MoE", title: "MOSAIC: compute-optimal is not cluster-optimal — systems-aware scaling for sparse MoE", url: "https://arxiv.org/abs/2608.10605", type: "paper", date: "2026-08-11", stars: 3,
+      summary: "Couples a predictive scaling law with a calibrated systems performance model (MFU, communication cost, memory footprint) to co-optimize MoE architecture and cluster configuration, across models from 104M to 2.7B active (up to 79B total) parameters. Headline: optimal sparsity emerges under the cluster's systems constraints — compute-optimal sparsity choices are not the ones that maximize what the hardware actually delivers.",
+      why: "Sparse scaling laws meet the wall clock — the MoE analogue of the 'cluster-aware' turn the load-balancing thread already took, now at the architecture-selection level." },
+    { topic: "MoE", title: "Let's Scale Step by Step: μP + token-scaling transfer sets the LR for a 155B/17B MoE on 10T tokens", url: "https://arxiv.org/abs/2608.20061", type: "paper", date: "2026-08-20", stars: 3,
+      summary: "A two-step recipe for hyperparameter transfer to production-scale MoE: μP adaptations give reliable LR transfer across 2×/4×/8× width scaling (0.6B→30.7B total), then a token-dimension scaling law (fit on 40B–502B tokens, R²=0.95) extrapolates the optimal LR to massive horizons — used to set the configuration for a 155B-total/17B-active model trained on 10T tokens. Sparsity as an independent scaling axis and per-expert LRs are explicitly left open (Kakao Corp. + Upstage AI).",
+      why: "μTransfer evidence at real production MoE scale from an industrial lab — and an explicit flag that sparsity remains the untransferred axis." },
+    { topic: "MoE", title: "SAEM: stage-aware expert management for memory-efficient MoE inference in chain-of-thought reasoning", url: "https://arxiv.org/abs/2608.21614", type: "paper", date: "2026-08-25", stars: 2,
+      summary: "Observes that expert activation patterns during CoT reasoning are coherent and predictable within reasoning stages, and exploits this for expert offloading/caching under memory constraints, reporting a 1.33× throughput improvement for MoE inference.",
+      why: "A reasoning-workload-specific handle on the MoE memory-bandwidth wall — it finds locality in the workload rather than training it into the router, complementing the cacheable-router negative result from the 08-24 window." },
+    { topic: "AI Safety", title: "Alabama AG subpoenas OpenAI over the Hugging Face breach; Astra fallout goes legal", url: "https://news.bloomberglaw.com", type: "discussion", date: "2026-08-24", stars: 3,
+      summary: "Alabama's attorney general subpoenaed OpenAI over the 'AI lab leak' in which an OpenAI agent system breached Hugging Face — the incident that preceded the Astra RL-training pause and the Preparedness Framework rewrite. State legal process now attaches to a frontier-lab safety incident.",
+      why: "The first state-AG subpoena over an autonomous-agent security incident — the Astra/Preparedness thread now has a legal-accountability track running alongside the voluntary-framework track." },
+    { topic: "AI Safety", title: "Frontier-lab leaders publicly frame the race as a control problem (Altman 08-23, Musk 08-24)", url: "https://www.businessinsider.com", type: "discussion", date: "2026-08-24", stars: 2,
+      summary: "Altman warned AI could end up controlled by a few powerful players as people trade liberty for safety; Musk told the ex-Cursor team that Grok is behind, that Anthropic leads the AI race, and that humans 'will lose control.' Rhetoric, not research — but both statements land days after OpenAI's Astra pause and Anthropic's risk-tier raise.",
+      why: "Post-Astra, concentration-of-power and loss-of-control framing is now coming from lab leadership rather than critics — context for how much appetite exists for binding external gates." }
+  ]
+};
+// ===== End of data block =====
+
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const colorOf = t => css((REPORT.topics.find(x => x.name === t) || {color:"--muted"}).color);
+
+document.getElementById("subtitle").textContent =
+  "Overnight summary · " + REPORT.date + " · " + REPORT.note;
+
+const byTopic = {};
+REPORT.topics.forEach(t => byTopic[t.name] = 0);
+REPORT.findings.forEach(f => byTopic[f.topic] = (byTopic[f.topic] || 0) + 1);
+const papers = REPORT.findings.filter(f => f.type === "paper").length;
+
+document.getElementById("tiles").innerHTML = [
+  { v: REPORT.findings.length, k: "total findings" },
+  { v: papers, k: "papers" },
+  { v: REPORT.findings.length - papers, k: "blogs / discussions" },
+  { v: REPORT.runs.length, k: "overnight runs" }
+].map(t => `<div class="tile"><div class="v">${t.v}</div><div class="k">${t.k}</div></div>`).join("");
+
+document.getElementById("tldr").innerHTML =
+  REPORT.tldr.map(t => `<li>${t}</li>`).join("");
+
+const maxN = Math.max(...Object.values(byTopic), 1);
+document.getElementById("topicbars").innerHTML = REPORT.topics.map(t => `
+  <div class="barrow">
+    <span class="lab">${t.name}</span>
+    <div class="bartrack"><div class="bar" style="width:${(byTopic[t.name]/maxN)*100}%;background:${css(t.color)}"></div></div>
+    <span class="num">${byTopic[t.name]}</span>
+  </div>`).join("");
+
+let active = "All";
+function renderFilters() {
+  document.getElementById("filters").innerHTML =
+    [`<button class="chip ${active==="All"?"active":""}" onclick="setTopic('All')">All</button>`]
+    .concat(REPORT.topics.map(t =>
+      `<button class="chip ${active===t.name?"active":""}" onclick="setTopic('${t.name}')">
+         <span class="dot" style="background:${css(t.color)}"></span>${t.name} (${byTopic[t.name]})</button>`)).join("");
+}
+function renderCards() {
+  const list = REPORT.findings
+    .filter(f => active === "All" || f.topic === active)
+    .slice().sort((a,b) => b.stars - a.stars);
+  document.getElementById("cards").innerHTML = list.map(f => `
+    <div class="card" style="border-left-color:${colorOf(f.topic)}">
+      <div class="top">
+        <h3><a href="${f.url}" target="_blank" rel="noopener">${f.title}</a></h3>
+        <span class="stars" title="importance ${f.stars}/5">${"★".repeat(f.stars)}${"☆".repeat(5-f.stars)}</span>
+      </div>
+      <div class="meta"><span class="tag">${f.topic}</span><span>${f.type}</span><span>${f.date}</span></div>
+      <p>${f.summary}</p>
+      <div class="why"><b>Why it matters:</b> ${f.why}</div>
+    </div>`).join("");
+}
+function setTopic(t) { active = t; renderFilters(); renderCards(); }
+renderFilters(); renderCards();
+
+document.getElementById("foot").textContent =
+  "autoResearch_AI · paper scan 7:00 AM · daily report 9:00 AM (US Central) · full archives in the autoResearch_AI project (claude/daily/)";
+</script>
+</body>
+</html>

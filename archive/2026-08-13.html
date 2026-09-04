@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Research Daily</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7; --surface: #fcfcfb;
+    --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+    --grid: #e1e0d9; --border: rgba(11,11,11,0.10);
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7;
+    --chip-bg: #f0efec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page: #0d0d0d; --surface: #1a1a19;
+      --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+      --grid: #2c2c2a; --border: rgba(255,255,255,0.10);
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9;
+      --chip-bg: #383835;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page); color: var(--ink);
+    padding: 28px 20px 60px; max-width: 980px; margin: 0 auto;
+  }
+  nav { display: flex; gap: 16px; align-items: center; margin-bottom: 18px; font-size: 13px; flex-wrap: wrap; }
+  nav .brand { font-weight: 700; }
+  nav a { text-decoration: none; color: var(--muted); }
+  nav a.active { color: var(--ink); font-weight: 600; }
+  header { margin-bottom: 22px; }
+  h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+  .sub { color: var(--ink-2); font-size: 13.5px; margin-top: 5px; line-height: 1.5; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 20px 0; }
+  .tile { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .tile .v { font-size: 26px; font-weight: 700; }
+  .tile .k { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; margin-bottom: 18px; }
+  .panel h2 { font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: 12px; }
+  .barrow { display: grid; grid-template-columns: 150px 1fr 30px; align-items: center; gap: 10px; margin: 7px 0; font-size: 12.5px; }
+  .barrow .lab { color: var(--ink-2); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bartrack { height: 14px; position: relative; }
+  .bar { height: 14px; border-radius: 0 4px 4px 0; }
+  .barrow .num { font-variant-numeric: tabular-nums; color: var(--ink-2); }
+  .tldr li { margin: 8px 0 8px 0; line-height: 1.55; font-size: 13.5px; color: var(--ink); }
+  .tldr { padding-left: 18px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 14px; }
+  .chip {
+    border: 1px solid var(--border); background: var(--chip-bg); color: var(--ink-2);
+    border-radius: 999px; padding: 6px 13px; font-size: 12.5px; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  .chip .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .chip.active { background: var(--ink); color: var(--page); border-color: var(--ink); }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; margin-bottom: 10px; border-left: 4px solid var(--grid);
+  }
+  .card .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .card h3 { font-size: 14.5px; font-weight: 600; line-height: 1.4; }
+  .card h3 a { color: inherit; text-decoration: none; }
+  .card h3 a:hover { text-decoration: underline; }
+  .meta { font-size: 11.5px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  .stars { color: var(--s4); font-size: 12px; letter-spacing: 1px; white-space: nowrap; }
+  .card p { font-size: 13px; color: var(--ink-2); line-height: 1.55; margin-top: 8px; }
+  .why { font-size: 12.5px; margin-top: 7px; color: var(--ink); }
+  .why b { font-weight: 600; }
+  .tag { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--chip-bg); color: var(--ink-2); }
+  footer { margin-top: 26px; font-size: 12px; color: var(--muted); line-height: 1.6; }
+</style>
+</head>
+<body>
+<nav>
+  <span class="brand">autoResearch_AI</span>
+  <a href="../" class="active">Daily Report</a>
+  <a href="../nightly/">Paper Scan</a>
+</nav>
+<header>
+  <h1>AI Research Daily</h1>
+  <div class="sub" id="subtitle"></div>
+</header>
+
+<div class="tiles" id="tiles"></div>
+
+<div class="panel">
+  <h2>TL;DR — Top picks today</h2>
+  <ul class="tldr" id="tldr"></ul>
+</div>
+
+<div class="panel">
+  <h2>Findings by topic</h2>
+  <div id="topicbars"></div>
+</div>
+
+<div class="filters" id="filters"></div>
+<div id="cards"></div>
+
+<footer id="foot"></footer>
+
+<script>
+// ===== Replaced daily by the morning-report agent. ALL content in English. =====
+const REPORT = {
+  date: "2026-08-13",
+  note: "Paper scan: 13 items across 7 topics (release day: Qwen3.8-2.4T-A95B open weights, DeepSeek V4 Pro GA, and Grok 4.6 land inside one news cycle)",
+  runs: ["Paper scan 07:00 (13 items)"],
+  tldr: [
+    "★4 Qwen3.8-2.4T-A95B open weights actually shipped — the first Qwen-Max-class open release ever: 2.4T total / 95B active, 512 experts (10 routed + 1 shared per token), hybrid Gated DeltaNet + Gated Attention blocks, 262K context extendable to ~1M. But it is text-only and stripped of the hosted API's vision, non-thinking mode, and default 1M context — and the promised local-class Qwen3.8-27B is still unshipped (watch day 10).",
+    "★4 [project-related] \"Towards Understanding On-Policy Distillation through the Lens of Test-Time Scaling\" (2608.11829): OPD-trained students win on avg@K at every sampling budget, but the pre-OPD base model's pass@K advantage grows with K, and OPD flips more previously-solvable problems to unsolvable than the reverse — the sharpest published statement yet that OPD buys sampling efficiency, not an expanded capability boundary.",
+    "★3 Two more frontier releases the same day: DeepSeek V4 Pro 0813 leaves preview at unchanged $0.435/$0.87 pricing (SWE-bench Verified 80.6, LiveCodeBench 93.5, Codeforces 3206), and Grok 4.6 ties GPT-5.6 Sol on the AA Intelligence Index (61) at ~$0.84/task, finishing long-horizon agentic tasks in roughly half the turns and a quarter the input tokens of Opus 5.",
+    "★3 \"When Self-Evolution Backfires\" (2608.05810): defective skills become reference material for future skill creation in self-evolving agents, forming irreversible contamination chains; pre-commit gating (Verifier-as-Gatekeeper) reaches 72% pass@1 with a ~5× smaller pool — independent convergence with Ouroboros on \"gate before commit, don't clean up after.\"",
+    "★3 MOSAIC (2608.10605): within its calibrated range, fitted MoE loss decreases monotonically with sparsity — no interior compute-optimal sparsity exists; practical sparsity optima only emerge once cluster constraints enter the objective. The \"optimal sparsity\" the scaling-law literature hunts for may be an artifact of ignoring the cluster."
+  ],
+  topics: [
+    { name: "Post-training", color: "--s1" },
+    { name: "OPD", color: "--s2" },
+    { name: "AI Safety", color: "--s3" },
+    { name: "Agentic RL", color: "--s4" },
+    { name: "Self-Evolving", color: "--s5" },
+    { name: "Multimodal/VLM", color: "--s6" },
+    { name: "MoE", color: "--s7" }
+  ],
+  findings: [
+    { topic: "MoE", title: "Qwen3.8-2.4T-A95B: the first Qwen-Max-class open-weights release — 2.4T sparse MoE with hybrid DeltaNet attention", url: "https://huggingface.co/Qwen/Qwen3.8-2.4T-A95B", type: "release", date: "2026-08-12", stars: 4,
+      summary: "Alibaba shipped the open weights promised on 08-03: 2.4T total / 95B active parameters, 92 layers arranged as 23 blocks of three Gated-DeltaNet+MoE units followed by one Gated-Attention+MoE unit, 512 experts with 10 routed plus 1 shared active per token, 262K native context extendable to ~1.01M. The release is text-only and omits the hosted API's vision input, non-thinking mode, default 1M context, and built-in tools — a top HF discussion calls it \"a huge disappointment\" vs Qwen3.8-Max. FP8 and community GGUF builds appeared same-day, and NVIDIA published a GB300 NVL72 serving guide. 469 points on HN.",
+      why: "The open MoE cohort (K3 2.8T, DeepSeek V4, GLM-5.2, Motif 3) gains its largest member yet and its first Max-class Qwen — but the stripped feature set keeps the multimodal-sparse frontier closed-weights, and the 27B local-class variant is still unshipped." },
+    { topic: "OPD", title: "Towards Understanding On-Policy Distillation through the Lens of Test-Time Scaling — \"illusory distillation\"", url: "https://arxiv.org/abs/2608.11829", type: "paper", date: "2026-08-12", stars: 4,
+      summary: "[project-related] Ge et al. evaluate OPD-trained students across sampling budgets K instead of at fixed pass@1: OPD models win on avg@K at every budget, but the pre-OPD base model's advantage in pass@K grows with K, and problem-level analysis (pass@1024 as solvability criterion) shows OPD converts more previously-solvable problems to unsolvable than the reverse. Conclusion: OPD primarily improves sampling efficiency rather than expanding the student's reasoning-capability boundary — gains are partly \"illusory distillation.\"",
+      why: "The sharpest published statement yet that OPD buys efficiency, not an expanded capability boundary — a capability-boundary account directly relevant to when on-policy distillation actually helps." },
+    { topic: "Post-training", title: "Grok 4.6: back to the intelligence frontier, leading on cost per task", url: "https://x.ai/news/grok-4-6", type: "release", date: "2026-08-12", stars: 3,
+      summary: "xAI's Grok 4.6 scores 61 on the Artificial Analysis Intelligence Index — tying GPT-5.6 Sol and trailing only Claude Opus 5 (63) and Fable 5 (62) — with GDPval-AA v2 Elo 1753, τ³-Banking 50.7%, and Terminal-Bench 2.1 at 88.4%. Context stays 500K and pricing stays $2/$6 per 1M tokens; AA measures ~$0.84 per task, and on long-horizon agentic work it finishes in roughly half the turns (~53 vs ~103) and a quarter the input tokens of Opus 5. 375 points on HN.",
+      why: "Frontier-tier intelligence at commodity pricing plus markedly more token-efficient agentic behavior — the \"same score, quarter the tokens\" profile is becoming the competitive axis post-training teams optimize for." },
+    { topic: "Post-training", title: "DeepSeek V4 Pro 0813: the flagship leaves preview at unchanged prices", url: "https://simonwillison.net/2026/Aug/12/deepseek-v4-pro-0813/", type: "release", date: "2026-08-12", stars: 3,
+      summary: "After a four-month preview, V4 Pro 0813 goes GA: 1.6T total / 49B active, 1M context; at max reasoning effort DeepSeek reports SWE-bench Verified 80.6%, GPQA Diamond 90.1%, MMLU-Pro 87.5%, LiveCodeBench 93.5%, Codeforces 3206 — leading on coding evals while trailing GPT-5.4 elsewhere (numbers vendor-reported). Pricing unchanged at $0.435/$0.87 per 1M tokens with a \"significant increase\" pre-announced; whether 0813 weights will be published is unstated (April-preview weights remain on HF at 1.4M+ downloads/month). 706 points on HN.",
+      why: "The pattern from V4-Flash-0731 repeats at flagship scale — capability jumps shipped as re-post-training refreshes at fixed architecture and price — and the open-weights question now hangs over the strongest open-lineage coding model." },
+    { topic: "Agentic RL", title: "Gowers: what sort of maths are LLMs good at?", url: "https://gowers.wordpress.com/2026/08/12/what-sort-of-maths-are-llms-good-at/", type: "discussion", date: "2026-08-12", stars: 3,
+      summary: "Reacting to the recent run of AI mathematical results, Gowers argues LLM successes cluster in example/counterexample-finding because the systems' strengths — encyclopedic knowledge of standard techniques plus fast, massive search — suit generic constructions and probabilistic methods, while the human \"nose\" for pruning unpromising directions remains the missing faculty. Real evidence of advance, he suggests, would be a surprising proof no researcher had conceived; he also proposes training that rewards search efficiency over trial-and-error volume. 232 points on HN.",
+      why: "The most credible working mathematician's taxonomy yet of where agentic math systems actually win — and a concrete hypothesis (pruning vs exploration) for what to train next." },
+    { topic: "AI Safety", title: "REDAgentBench: executable red teaming with receipt-verified harm", url: "https://arxiv.org/abs/2608.10669", type: "paper", date: "2026-08-11", stars: 3,
+      summary: "Chen et al. derive attacks from explicit safety constraints, execute them in sandboxed service environments, and verify harm through service receipts and state changes rather than judge labels — 1,661 cases across five service surfaces. Across six models and three harnesses: 65.69% macro attack success; a \"Recognition-Execution Gap\" where ~20% of confirmed violations happen after the agent has acknowledged the relevant constraint; training-free policy reminders cut violations by 70+ percentage points.",
+      why: "Grounded, state-verified measurement answers the month's eval-validity critiques on the agent-safety side — and the recognition-execution gap says the failure is between knowing and doing, not in knowing." },
+    { topic: "Self-Evolving", title: "When Self-Evolution Backfires: pre-commit gating against skill contamination", url: "https://arxiv.org/abs/2608.05810", type: "paper", date: "2026-08-06", stars: 3,
+      summary: "Shang et al. show that as self-evolving agents grow their skill pools, defective skills become reference material for future skill creation, forming irreversible contamination chains — unconditional accumulation peaks then degrades, and post-hoc removal recovers only a fraction of the loss. Verifier-as-Gatekeeper gates skill admission pre-commit with three filters (structural validity, behavioral harmlessness, semantic consistency) plus subset selection: 72% pass@1 with a ~5× smaller pool, improving every round, and the frozen pool transfers to four other backbones without retraining.",
+      why: "The failure-mode mirror image of Ouroboros's reviewed-commit gate — independent convergence on \"gate before commit, don't clean up after\" as the survival condition for self-evolution." },
+    { topic: "MoE", title: "MOSAIC: compute-optimal is not cluster-optimal for sparse MoE", url: "https://arxiv.org/abs/2608.10605", type: "paper", date: "2026-08-11", stars: 3,
+      summary: "Sarkar, Tang & Zha couple a predictive MoE scaling law (fitted on models from 104M to 2.7B active, up to 79B total) with a calibrated systems model estimating MFU, communication cost, memory footprint, and best parallel layout. Key finding: within the calibrated range, fitted loss decreases monotonically with sparsity — the compute optimum sits at the boundary of the data support, so no interior compute-optimal sparsity exists; practical sparsity optima emerge only once cluster constraints enter the objective.",
+      why: "A direct challenge to architecture-first scaling-law methodology — the \"optimal sparsity\" the sparse-scaling-law literature hunts for may be an artifact of ignoring the cluster, arguing for architecture-systems co-design as the unit of optimization." },
+    { topic: "Agentic RL", title: "ADRS: self-distilled reward shaping with return-calibrated teacher confidence", url: "https://arxiv.org/abs/2608.03223", type: "paper", date: "2026-08-04", stars: 3,
+      summary: "Zhang et al. attack sparse-reward credit assignment by letting training-only privileged skills rescore tokens of skill-free trajectories, then gating the teacher signal through a Teacher Value Advantage mechanism that calibrates teacher confidence against actually-realized returns before folding it into RL credit. Consistent gains on three interactive long-horizon benchmarks, persisting across RL algorithms, low-data regimes, and unseen tasks.",
+      why: "Another entry in the token-credit-validity thread — TVA's return-calibration is a built-in answer to \"privileged likelihood is not value,\" arrived at from the reward-shaping side rather than the distillation side." },
+    { topic: "AI Safety", title: "1,300+ researchers across rival labs sign competitive-pressure warning", url: "https://techstartups.com/2026/08/12/top-tech-news-today-august-12-2026-anthropic-google-ibm-lovable-nvidia-openai-more/", type: "discussion", date: "2026-08-12", stars: 2,
+      summary: "An open letter signed by more than 1,300 AI researchers spanning OpenAI, Anthropic, Google DeepMind, Meta, Microsoft, and Mistral warns that \"competitive pressure... could make slowing development extraordinarily difficult\" — landing in a week that saw three frontier releases in a single day.",
+      why: "Cross-lab researcher coordination at this scale is itself the signal — the people running the race publicly flagging that its structure, not any single actor, is the risk." },
+    { topic: "Agentic RL", title: "SINKFLEX-RL: memory-efficient training for long-horizon tool-use agents", url: "https://arxiv.org/abs/2608.10357", type: "paper", date: "2026-08-11", stars: 2,
+      summary: "Cheng et al. integrate a Gymnasium-compatible environment wrapper, VERL-style rollout dataflow, group-relative policy optimization (no value model), and a FlexAttention kernel that preserves attention-sink scaling under varied masks. On Tau2Bench retail: validation reward 0.25→0.44; peak VRAM cut 19.7% at 4K tokens (28.1→22.5GB), and 8K-token configs fit in 25.5GB where baselines OOM.",
+      why: "Long-horizon agentic RL's binding constraint is increasingly memory, not algorithm — kernel-level plumbing like sink-preserving FlexAttention is what makes consumer-scale agent training runs feasible." },
+    { topic: "Multimodal/VLM", title: "MultiModal Code-Switching: interleaving visual objects into language for object-level alignment", url: "https://arxiv.org/abs/2608.11167", type: "paper", date: "2026-08-11", stars: 2,
+      summary: "Proposes training VLMs on \"code-switched\" sequences that interleave visual object representations directly into the language stream, making object-level image-text alignment an explicit modeling target rather than an emergent property of contrastive or captioning objectives. (Title-level this round; details to backfill.)",
+      why: "Explicit object-level alignment attacks the grounding weakness behind VLM hallucination — the same failure geometry ReBA found breaking MoE routing." },
+    { topic: "Multimodal/VLM", title: "Test-time self-evolving GUI visual grounding via reflection-guided sampling", url: "https://arxiv.org/abs/2608.11191", type: "paper", date: "2026-08-12", stars: 2,
+      summary: "Applies test-time self-evolution to GUI visual grounding — the model reflects on its own grounding attempts and refines them without weight updates, sitting at the self-evolving × GUI-agent intersection alongside gated hindsight distillation. (Title-level this round; details to backfill.)",
+      why: "Test-time self-improvement reaching the GUI-grounding layer suggests the self-evolution toolbox is moving down the stack, from harness to perception." }
+  ]
+};
+// ===== End of data block =====
+
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const colorOf = t => css((REPORT.topics.find(x => x.name === t) || {color:"--muted"}).color);
+
+document.getElementById("subtitle").textContent =
+  "Overnight summary · " + REPORT.date + " · " + REPORT.note;
+
+const byTopic = {};
+REPORT.topics.forEach(t => byTopic[t.name] = 0);
+REPORT.findings.forEach(f => byTopic[f.topic] = (byTopic[f.topic] || 0) + 1);
+const papers = REPORT.findings.filter(f => f.type === "paper").length;
+
+document.getElementById("tiles").innerHTML = [
+  { v: REPORT.findings.length, k: "total findings" },
+  { v: papers, k: "papers" },
+  { v: REPORT.findings.length - papers, k: "blogs / discussions" },
+  { v: REPORT.runs.length, k: "overnight runs" }
+].map(t => `<div class="tile"><div class="v">${t.v}</div><div class="k">${t.k}</div></div>`).join("");
+
+document.getElementById("tldr").innerHTML =
+  REPORT.tldr.map(t => `<li>${t}</li>`).join("");
+
+const maxN = Math.max(...Object.values(byTopic), 1);
+document.getElementById("topicbars").innerHTML = REPORT.topics.map(t => `
+  <div class="barrow">
+    <span class="lab">${t.name}</span>
+    <div class="bartrack"><div class="bar" style="width:${(byTopic[t.name]/maxN)*100}%;background:${css(t.color)}"></div></div>
+    <span class="num">${byTopic[t.name]}</span>
+  </div>`).join("");
+
+let active = "All";
+function renderFilters() {
+  document.getElementById("filters").innerHTML =
+    [`<button class="chip ${active==="All"?"active":""}" onclick="setTopic('All')">All</button>`]
+    .concat(REPORT.topics.map(t =>
+      `<button class="chip ${active===t.name?"active":""}" onclick="setTopic('${t.name}')">
+         <span class="dot" style="background:${css(t.color)}"></span>${t.name} (${byTopic[t.name]})</button>`)).join("");
+}
+function renderCards() {
+  const list = REPORT.findings
+    .filter(f => active === "All" || f.topic === active)
+    .slice().sort((a,b) => b.stars - a.stars);
+  document.getElementById("cards").innerHTML = list.map(f => `
+    <div class="card" style="border-left-color:${colorOf(f.topic)}">
+      <div class="top">
+        <h3><a href="${f.url}" target="_blank" rel="noopener">${f.title}</a></h3>
+        <span class="stars" title="importance ${f.stars}/5">${"★".repeat(f.stars)}${"☆".repeat(5-f.stars)}</span>
+      </div>
+      <div class="meta"><span class="tag">${f.topic}</span><span>${f.type}</span><span>${f.date}</span></div>
+      <p>${f.summary}</p>
+      <div class="why"><b>Why it matters:</b> ${f.why}</div>
+    </div>`).join("");
+}
+function setTopic(t) { active = t; renderFilters(); renderCards(); }
+renderFilters(); renderCards();
+
+document.getElementById("foot").textContent =
+  "autoResearch_AI · paper scan 7:00 AM · daily report 9:00 AM (US Central) · full archives in the autoResearch_AI project (claude/daily/)";
+</script>
+</body>
+</html>

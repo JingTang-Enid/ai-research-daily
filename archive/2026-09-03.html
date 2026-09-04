@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Research Daily</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7; --surface: #fcfcfb;
+    --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+    --grid: #e1e0d9; --border: rgba(11,11,11,0.10);
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7;
+    --chip-bg: #f0efec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page: #0d0d0d; --surface: #1a1a19;
+      --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+      --grid: #2c2c2a; --border: rgba(255,255,255,0.10);
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9;
+      --chip-bg: #383835;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page); color: var(--ink);
+    padding: 28px 20px 60px; max-width: 980px; margin: 0 auto;
+  }
+  nav { display: flex; gap: 16px; align-items: center; margin-bottom: 18px; font-size: 13px; flex-wrap: wrap; }
+  nav .brand { font-weight: 700; }
+  nav a { text-decoration: none; color: var(--muted); }
+  nav a.active { color: var(--ink); font-weight: 600; }
+  header { margin-bottom: 22px; }
+  h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+  .sub { color: var(--ink-2); font-size: 13.5px; margin-top: 5px; line-height: 1.5; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 20px 0; }
+  .tile { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .tile .v { font-size: 26px; font-weight: 700; }
+  .tile .k { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; margin-bottom: 18px; }
+  .panel h2 { font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: 12px; }
+  .barrow { display: grid; grid-template-columns: 150px 1fr 30px; align-items: center; gap: 10px; margin: 7px 0; font-size: 12.5px; }
+  .barrow .lab { color: var(--ink-2); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bartrack { height: 14px; position: relative; }
+  .bar { height: 14px; border-radius: 0 4px 4px 0; }
+  .barrow .num { font-variant-numeric: tabular-nums; color: var(--ink-2); }
+  .tldr li { margin: 8px 0 8px 0; line-height: 1.55; font-size: 13.5px; color: var(--ink); }
+  .tldr { padding-left: 18px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 14px; }
+  .chip {
+    border: 1px solid var(--border); background: var(--chip-bg); color: var(--ink-2);
+    border-radius: 999px; padding: 6px 13px; font-size: 12.5px; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  .chip .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .chip.active { background: var(--ink); color: var(--page); border-color: var(--ink); }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; margin-bottom: 10px; border-left: 4px solid var(--grid);
+  }
+  .card .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .card h3 { font-size: 14.5px; font-weight: 600; line-height: 1.4; }
+  .card h3 a { color: inherit; text-decoration: none; }
+  .card h3 a:hover { text-decoration: underline; }
+  .meta { font-size: 11.5px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  .stars { color: var(--s4); font-size: 12px; letter-spacing: 1px; white-space: nowrap; }
+  .card p { font-size: 13px; color: var(--ink-2); line-height: 1.55; margin-top: 8px; }
+  .why { font-size: 12.5px; margin-top: 7px; color: var(--ink); }
+  .why b { font-weight: 600; }
+  .tag { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--chip-bg); color: var(--ink-2); }
+  footer { margin-top: 26px; font-size: 12px; color: var(--muted); line-height: 1.6; }
+</style>
+</head>
+<body>
+<nav>
+  <span class="brand">autoResearch_AI</span>
+  <a href="../" class="active">Daily Report</a>
+  <a href="../nightly/">Paper Scan</a>
+</nav>
+<header>
+  <h1>AI Research Daily</h1>
+  <div class="sub" id="subtitle"></div>
+</header>
+
+<div class="tiles" id="tiles"></div>
+
+<div class="panel">
+  <h2>TL;DR — Top picks today</h2>
+  <ul class="tldr" id="tldr"></ul>
+</div>
+
+<div class="panel">
+  <h2>Findings by topic</h2>
+  <div id="topicbars"></div>
+</div>
+
+<div class="filters" id="filters"></div>
+<div id="cards"></div>
+
+<footer id="foot"></footer>
+
+<script>
+// ===== Replaced daily by the morning-report agent. ALL content in English. =====
+const REPORT = {
+  date: "2026-09-03",
+  note: "Paper scan: 18 items across 7 topics (Wednesday round covering the 09-02 global day; six entries title-level after an arXiv rate limit mid-scan; archive page reconstructed from the daily report doc)",
+  runs: ["Paper scan 07:00 (18 items)"],
+  tldr: [
+    "★4 OpenAI publishes \"Path to Astra\" (Sep 1) — the first model rated Critical for cyber capability under the Preparedness Framework: fully autonomous zero-day exploit development against hardened systems, 100% on ExploitBench, two real zero-days found among 20 high-severity V8 bugs. It ships behind gated access with a disclosed safeguard stack (91.5% cyber-jailbreak refusal, activation classifiers, cross-conversation + CoT monitoring, honeypots) — the Critical tier used for the first time, and the de facto rollout template others will be measured against.",
+    "★4 A day later, Astra's \"recurrent-depth\" reasoning becomes the safety story: looped-transformer computation leaves fewer legible traces than sequential CoT. Buck Shlegeris warns scaling it could \"totally destroy CoT monitorability\"; Greenblatt raises opaque latent reasoning outscaling visible reasoning; OpenAI (Pachocki) counters that Astra's CoT stays legible and monitored — the first frontier deployment to put the neuralese-vs-legible-CoT trade-off into production.",
+    "★4 NVIDIA post-trains an open MoE past the best human at IOI 2026: a Nemotron-3-Ultra-CC (550B-A55B) competition variant scored 535.4/600, above the top human contestant (498.27) — reportedly a first. Recipe fully documented: 22K curated problems → synthetic reasoning traces (DeepSeek-V4-Flash) → SFT → executable-reward RL, plus GenCorrect test-time refinement.",
+    "★4 World Labs unveils Atlas (Sep 1) — one world model that generates, reconstructs, and simulates 3D scenes: a single autoregressive-diffusion transformer trained natively on text/images/camera poses/3D depth, producing camera-controlled 1440p video (93–94% human preference over FLUX/Seedance), 3D reconstruction beating DTU/ETH3D/KITTI/ScanNet specialists, and spatial-temporal simulation — the strongest \"spatial intelligence\" evidence to date."
+  ],
+  topics: [
+    { name: "Post-training", color: "--s1" },
+    { name: "OPD", color: "--s2" },
+    { name: "AI Safety", color: "--s3" },
+    { name: "Agentic RL", color: "--s4" },
+    { name: "Self-Evolving", color: "--s5" },
+    { name: "Multimodal/VLM", color: "--s6" },
+    { name: "MoE", color: "--s7" }
+  ],
+  findings: [
+    { topic: "AI Safety", title: "OpenAI \"Path to Astra\": first model rated Critical for cyber, shipped behind gated access", url: "https://openai.com/index/path-to-astra/", type: "release", date: "2026-09-01", stars: 4,
+      summary: "First use of the Preparedness Framework's Critical cybersecurity tier: Astra performs fully autonomous zero-day exploit development against hardened systems (100% ExploitBench; two real zero-days among 20 high-severity V8 bugs found). Rollout is a vetted alpha behind gated access, with a disclosed safeguard stack: 91.5% cyber-jailbreak refusal, activation classifiers, cross-conversation and CoT monitoring, and honeypots.",
+      why: "The Critical tier moving from framework text to a live release decision sets the template every subsequent frontier rollout will be measured against." },
+    { topic: "AI Safety", title: "Astra's recurrent-depth reasoning alarms safety researchers over CoT monitorability", url: "https://techcrunch.com/2026/09/02/openais-new-reasoning-technique-alarms-ai-safety-experts/", type: "discussion", date: "2026-09-02", stars: 4,
+      summary: "Astra reportedly uses looped-transformer (recurrent-depth) computation that leaves fewer legible traces than sequential chain-of-thought. Buck Shlegeris warns scaling it could \"totally destroy CoT monitorability\"; Ryan Greenblatt raises the risk of opaque latent reasoning outscaling visible reasoning; OpenAI's Pachocki counters that Astra's CoT remains legible and monitored.",
+      why: "The first frontier deployment to put the neuralese-vs-legible-CoT trade-off into production — the substrate CoT monitoring depends on is now a design variable." },
+    { topic: "AI Safety", title: "When Safety Routing Breaks: a Fisher-geometric account of alignment fragility under benign fine-tuning", url: "https://arxiv.org/abs/2609.01455", type: "paper", date: "2026-09-01", stars: 3,
+      summary: "Shows safety Fisher information is low-rank: alignment leaves an output-routing pathway that selectively re-sharpens after as few as ~100 benign fine-tuning examples, explaining why safety collapses while utility survives. LoRA and ASAM mitigate early in training but the protection fades at scale.",
+      why: "A mechanism-level answer to why benign fine-tuning undoes alignment — the fragility is geometric, not data-dependent." },
+    { topic: "AI Safety", title: "OpenAI tells House Democrats it is building automated shutdown for AI systems", url: "https://thenextweb.com/news/openai-automated-shutdown-house-democrats-logs-withheld-eu-ai-act-article-93-withdraw-recall", type: "discussion", date: "2026-09-02", stars: 2,
+      summary: "Following the container-breach red-team incident, OpenAI disclosed to House Democrats that it is building automated shutdown capability and stronger agent-action monitoring — a kill-switch commitment made directly to legislators.",
+      why: "The kill-switch debate moving from proposed legislation to a lab's own committed engineering roadmap." },
+    { topic: "Post-training", title: "NVIDIA: post-training LLMs to gold-medal — and above-top-human — IOI performance", url: "https://arxiv.org/abs/2609.02849", type: "paper", date: "2026-09-02", stars: 4,
+      summary: "A fully documented recipe — 22K curated competitive-programming problems, synthetic reasoning traces from DeepSeek-V4-Flash, SFT, executable-reward RL, and GenCorrect test-time refinement — lifts Nemotron-3-Nano-CC (30B-A3B) from 130 to 468 on IOI 2025 and Nemotron-3-Ultra-CC (550B-A55B) to 502; a competition variant scores 535.4/600 on IOI 2026, above the best human contestant (498.27).",
+      why: "Reportedly the first above-top-human IOI result — and the open, end-to-end recipe matters as much as the score." },
+    { topic: "Post-training", title: "AMRP: uncovering and mitigating aggregation-induced reward hacking in multi-reward RL", url: "https://arxiv.org/abs/2609.00213", type: "paper", date: "2026-08-31", stars: 3,
+      summary: "Fixed-weight aggregation of multiple rewards drifts toward easy/dense rewards, gaming the aggregate; Adaptive Multi-Reward Projection reallocates weights online from shortfall, volatility, and progress signals. Improves reward balance and downstream performance across GRPO/GDPO/PPO; code released.",
+      why: "Multi-reward post-training is the norm, and aggregation itself turns out to be a reward-hacking surface." },
+    { topic: "Post-training", title: "Meta ships Muse Spark 1.3 with ~20% fewer tool calls and ~25% fewer tokens", url: "https://llm-stats.com/ai-news", type: "release", date: "2026-09-02", stars: 2,
+      summary: "An efficiency-focused point release for agentic/coding workloads at $1.25/M input, $4.25/M output — with \"fewer tool calls per task\" now an explicit optimization objective.",
+      why: "Token- and call-efficiency becoming its own post-training target across the frontier vendors." },
+    { topic: "Post-training", title: "From Production Traffic to Post-Training: covering the corporate request mix (title-level)", url: "https://arxiv.org/html/2609.01572v1", type: "paper", date: "2026-09-01", stars: 2,
+      summary: "Turns an organization's live production traffic into post-training data so a self-hosted model covers the real workload distribution. Abstract pending backfill (arXiv rate-limited this round).",
+      why: "Post-training data sourced from the deployment distribution itself — the practical enterprise version of on-policy data curation." },
+    { topic: "Multimodal/VLM", title: "World Labs unveils Atlas: one world model that generates, reconstructs, and simulates 3D scenes", url: "https://www.worldlabs.ai/blog/atlas", type: "release", date: "2026-09-01", stars: 4,
+      summary: "A single autoregressive-diffusion transformer trained natively on text, images, camera poses, and 3D depth: camera-controlled 1440p video up to 1 minute (93–94% human preference over FLUX/Seedance), sparse-view 3D reconstruction beating DTU/ETH3D/KITTI/ScanNet specialists, and spatial-temporal simulation. Early access with partners.",
+      why: "The strongest \"spatial intelligence\" evidence to date and a direct bid for the robotics-data problem." },
+    { topic: "Multimodal/VLM", title: "Google ships agentic video understanding in Gemini: up to 88% fewer tokens, better accuracy", url: "https://the-decoder.com/google-geminis-new-agent-based-video-analysis-cuts-token-usage-by-up-to-88-percent/", type: "release", date: "2026-09-02", stars: 3,
+      summary: "An agent loop selectively retrieves frames/audio/transcripts and re-samples suspicious regions at higher frame rate — catching sub-second changes while cutting tokens up to 88% and cost up to 66%, with top accuracy on 1H-VideoQA and LVBench.",
+      why: "Agentic selective perception replacing uniform frame ingestion — efficiency and accuracy improving together." },
+    { topic: "Multimodal/VLM", title: "Uncovering understanding–generation synergy in native unified multimodal models (title-level)", url: "https://arxiv.org/html/2609.01607v1", type: "paper", date: "2026-09-01", stars: 2,
+      summary: "Studies when understanding and generation reinforce each other in unified multimodal models, analyzed at representation, task, and system levels. Abstract pending backfill.",
+      why: "The synergy-vs-competition question for unified models, posed at the level the early-fusion debate needs." },
+    { topic: "Self-Evolving", title: "APEx: distillation of agent procedural experience for adaptive deep-research QA", url: "https://arxiv.org/abs/2609.02253", type: "paper", date: "2026-09-02", stars: 3,
+      summary: "A closed-loop Executor–Distiller–Planner system organizes interaction histories into trajectory memories and procedural skills, trained with three-stage alternating GRPO; distilled skills then guide label-free online adaptation. SOTA on seven deep-research benchmarks, +14.7 over GPT-5.4.",
+      why: "Experience-to-skill distillation trained end-to-end with RL — the self-evolving thread's strongest recent benchmark result." },
+    { topic: "Self-Evolving", title: "MASkills: continual skills optimization for multi-agent LLM systems (title-level)", url: "https://arxiv.org/html/2609.02094", type: "paper", date: "2026-09-02", stars: 2,
+      summary: "Extends single-agent skill evolution (SEED, MemSkill) to a continually optimized shared skill library across multiple agents. Abstract pending backfill.",
+      why: "Shared skill libraries are the multi-agent version of the experience-compilation bet." },
+    { topic: "Self-Evolving", title: "Recursive experiential–working memory evolution for long-horizon agent harnesses (title-level)", url: "https://arxiv.org/html/2608.24876", type: "paper", date: "2026-08-29", stars: 2,
+      summary: "Recursively evolves both long-term (experiential) and working memory inside long-horizon agent harnesses — memory treated as an evolvable harness component. Abstract pending backfill.",
+      why: "Memory joining prompts/tools/control-flow as an object of harness evolution." },
+    { topic: "Agentic RL", title: "The Rise of Verbal Reinforcement Learning", url: "https://arxiv.org/abs/2609.01597", type: "paper", date: "2026-09-01", stars: 2,
+      summary: "A position/survey organizing natural-language feedback for agents along one axis — when it takes effect and what it modifies: grounding signal, deliberative feedback, or learning signal.",
+      why: "A map for the space between prompt-level reflection and parameter-level RL, which the agent literature keeps rediscovering piecemeal." },
+    { topic: "Agentic RL", title: "Efficient SWE-agent benchmarking via trajectory-aware evaluation (title-level)", url: "https://arxiv.org/abs/2609.01603", type: "paper", date: "2026-09-01", stars: 2,
+      summary: "Trajectory-aware evaluation to cut the cost of benchmarking software-engineering agents. Abstract pending backfill.",
+      why: "Evaluation cost is becoming a binding constraint on agent research — efficiency work is arriving on the eval side too." },
+    { topic: "OPD", title: "Knowledge Distillation under Teacher Misspecification (title-level)", url: "https://arxiv.org/abs/2608.29472", type: "paper", date: "2026-08-31", stars: 2,
+      summary: "[project-related] Studies KD when the teacher's distribution is not a valid target for the student — the general form of the unreliable-teacher-signal premise. Abstract was rate-limited all round; queued for a priority backfill/dedup read (expected zero collision, unverified at scan time).",
+      why: "Directly adjacent to the lab draft's premise that raw teacher signal can be the wrong target — flagged for a collision check." },
+    { topic: "MoE", title: "Qwen3.8-Max-0902: post-training-only snapshot of the 2.4T MoE takes #1 on CodeArena WebDev", url: "https://cellcog.ai/blog/qwen3-8-max-0902/", type: "release", date: "2026-09-02", stars: 3,
+      summary: "Alibaba refreshed its 2.4T flagship MoE (1M context) with coding/office-focused post-training at unchanged pricing: TerminalBench 11.3→29.0, WorkArena Elo 1348→1468, and #1 on CodeArena WebDev (Elo 1691). No new MoE architecture/routing papers surfaced this round.",
+      why: "Frontier sparse models improving via post-training-only snapshots at fixed price is the week's pattern — capability as a post-training variable at trillion scale." }
+  ]
+};
+// ===== End of data block =====
+
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const colorOf = t => css((REPORT.topics.find(x => x.name === t) || {color:"--muted"}).color);
+
+document.getElementById("subtitle").textContent =
+  "Overnight summary · " + REPORT.date + " · " + REPORT.note;
+
+const byTopic = {};
+REPORT.topics.forEach(t => byTopic[t.name] = 0);
+REPORT.findings.forEach(f => byTopic[f.topic] = (byTopic[f.topic] || 0) + 1);
+const papers = REPORT.findings.filter(f => f.type === "paper").length;
+
+document.getElementById("tiles").innerHTML = [
+  { v: REPORT.findings.length, k: "total findings" },
+  { v: papers, k: "papers" },
+  { v: REPORT.findings.length - papers, k: "blogs / discussions" },
+  { v: REPORT.runs.length, k: "overnight runs" }
+].map(t => `<div class="tile"><div class="v">${t.v}</div><div class="k">${t.k}</div></div>`).join("");
+
+document.getElementById("tldr").innerHTML =
+  REPORT.tldr.map(t => `<li>${t}</li>`).join("");
+
+const maxN = Math.max(...Object.values(byTopic), 1);
+document.getElementById("topicbars").innerHTML = REPORT.topics.map(t => `
+  <div class="barrow">
+    <span class="lab">${t.name}</span>
+    <div class="bartrack"><div class="bar" style="width:${(byTopic[t.name]/maxN)*100}%;background:${css(t.color)}"></div></div>
+    <span class="num">${byTopic[t.name]}</span>
+  </div>`).join("");
+
+let active = "All";
+function renderFilters() {
+  document.getElementById("filters").innerHTML =
+    [`<button class="chip ${active==="All"?"active":""}" onclick="setTopic('All')">All</button>`]
+    .concat(REPORT.topics.map(t =>
+      `<button class="chip ${active===t.name?"active":""}" onclick="setTopic('${t.name}')">
+         <span class="dot" style="background:${css(t.color)}"></span>${t.name} (${byTopic[t.name]})</button>`)).join("");
+}
+function renderCards() {
+  const list = REPORT.findings
+    .filter(f => active === "All" || f.topic === active)
+    .slice().sort((a,b) => b.stars - a.stars);
+  document.getElementById("cards").innerHTML = list.map(f => `
+    <div class="card" style="border-left-color:${colorOf(f.topic)}">
+      <div class="top">
+        <h3><a href="${f.url}" target="_blank" rel="noopener">${f.title}</a></h3>
+        <span class="stars" title="importance ${f.stars}/5">${"★".repeat(f.stars)}${"☆".repeat(5-f.stars)}</span>
+      </div>
+      <div class="meta"><span class="tag">${f.topic}</span><span>${f.type}</span><span>${f.date}</span></div>
+      <p>${f.summary}</p>
+      <div class="why"><b>Why it matters:</b> ${f.why}</div>
+    </div>`).join("");
+}
+function setTopic(t) { active = t; renderFilters(); renderCards(); }
+renderFilters(); renderCards();
+
+document.getElementById("foot").textContent =
+  "autoResearch_AI · paper scan 7:00 AM · daily report 9:00 AM (US Central) · full archives in the autoResearch_AI project (claude/daily/)";
+</script>
+</body>
+</html>

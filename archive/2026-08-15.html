@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Research Daily</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7; --surface: #fcfcfb;
+    --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+    --grid: #e1e0d9; --border: rgba(11,11,11,0.10);
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7;
+    --chip-bg: #f0efec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page: #0d0d0d; --surface: #1a1a19;
+      --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+      --grid: #2c2c2a; --border: rgba(255,255,255,0.10);
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9;
+      --chip-bg: #383835;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page); color: var(--ink);
+    padding: 28px 20px 60px; max-width: 980px; margin: 0 auto;
+  }
+  nav { display: flex; gap: 16px; align-items: center; margin-bottom: 18px; font-size: 13px; flex-wrap: wrap; }
+  nav .brand { font-weight: 700; }
+  nav a { text-decoration: none; color: var(--muted); }
+  nav a.active { color: var(--ink); font-weight: 600; }
+  header { margin-bottom: 22px; }
+  h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+  .sub { color: var(--ink-2); font-size: 13.5px; margin-top: 5px; line-height: 1.5; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 20px 0; }
+  .tile { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .tile .v { font-size: 26px; font-weight: 700; }
+  .tile .k { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; margin-bottom: 18px; }
+  .panel h2 { font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: 12px; }
+  .barrow { display: grid; grid-template-columns: 150px 1fr 30px; align-items: center; gap: 10px; margin: 7px 0; font-size: 12.5px; }
+  .barrow .lab { color: var(--ink-2); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bartrack { height: 14px; position: relative; }
+  .bar { height: 14px; border-radius: 0 4px 4px 0; }
+  .barrow .num { font-variant-numeric: tabular-nums; color: var(--ink-2); }
+  .tldr li { margin: 8px 0 8px 0; line-height: 1.55; font-size: 13.5px; color: var(--ink); }
+  .tldr { padding-left: 18px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 14px; }
+  .chip {
+    border: 1px solid var(--border); background: var(--chip-bg); color: var(--ink-2);
+    border-radius: 999px; padding: 6px 13px; font-size: 12.5px; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  .chip .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .chip.active { background: var(--ink); color: var(--page); border-color: var(--ink); }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; margin-bottom: 10px; border-left: 4px solid var(--grid);
+  }
+  .card .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .card h3 { font-size: 14.5px; font-weight: 600; line-height: 1.4; }
+  .card h3 a { color: inherit; text-decoration: none; }
+  .card h3 a:hover { text-decoration: underline; }
+  .meta { font-size: 11.5px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  .stars { color: var(--s4); font-size: 12px; letter-spacing: 1px; white-space: nowrap; }
+  .card p { font-size: 13px; color: var(--ink-2); line-height: 1.55; margin-top: 8px; }
+  .why { font-size: 12.5px; margin-top: 7px; color: var(--ink); }
+  .why b { font-weight: 600; }
+  .tag { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--chip-bg); color: var(--ink-2); }
+  footer { margin-top: 26px; font-size: 12px; color: var(--muted); line-height: 1.6; }
+</style>
+</head>
+<body>
+<nav>
+  <span class="brand">autoResearch_AI</span>
+  <a href="../" class="active">Daily Report</a>
+  <a href="../nightly/">Paper Scan</a>
+</nav>
+<header>
+  <h1>AI Research Daily</h1>
+  <div class="sub" id="subtitle"></div>
+</header>
+
+<div class="tiles" id="tiles"></div>
+
+<div class="panel">
+  <h2>TL;DR — Top picks today</h2>
+  <ul class="tldr" id="tldr"></ul>
+</div>
+
+<div class="panel">
+  <h2>Findings by topic</h2>
+  <div id="topicbars"></div>
+</div>
+
+<div class="filters" id="filters"></div>
+<div id="cards"></div>
+
+<footer id="foot"></footer>
+
+<script>
+// ===== Replaced daily by the morning-report agent. ALL content in English. =====
+const REPORT = {
+  date: "2026-08-15",
+  note: "Paper scan: 8 items across 7 topics (two-day catch-up covering Aug 13–14; Anthropic withholds Model 2, Z.ai holds GLM-5.3 weights, Qwen3.8-27B ships)",
+  runs: ["Paper scan 07:00 (8 items, two-day window)"],
+  tldr: [
+    "★4 Anthropic's second RSP Risk Report raises its assessed misalignment risk from \"Very Low\" to \"Low\" and discloses an unreleased internal \"Model 2\" that reportedly outperforms Mythos 5 — with no plan to release it, citing new alignment concerns observed during its evaluation. A frontier lab publicly raising its own risk tier while withholding its strongest model is the RSP mechanism doing visible work.",
+    "★4 Z.ai ships GLM-5.3: same 750B-MoE base as GLM-5.2, post-training alone reportedly lifts complex coding ~50% to the top of the open-weight coding leaderboards — and produced an unplanned emergent cyber capability (CyberGym 84.5%, 1,097 critical vulnerabilities found), prompting Z.ai to hold the weights back at launch pending a \"responsible path to open release\" (API live).",
+    "★4 Qwen3.8-27B open weights are real — the local-class slot promised on 08-03 shipped (HF repo + FP8 + community GGUF/NVFP4 builds live), reportedly beating Muse Glimmer 30B on many benchmarks; the 12-day Qwen3.8 watch closes with both promised releases delivered.",
+    "★3 Policy-Masked Private Experts (2608.06690): capability access control implemented in the MoE routing layer — restrict a capability by construction (which experts can be routed to) rather than by refusal training. Exactly the mechanism class the GLM-5.3 held-back-weights episode makes urgent, arriving the same week."
+  ],
+  topics: [
+    { name: "Post-training", color: "--s1" },
+    { name: "OPD", color: "--s2" },
+    { name: "AI Safety", color: "--s3" },
+    { name: "Agentic RL", color: "--s4" },
+    { name: "Self-Evolving", color: "--s5" },
+    { name: "Multimodal/VLM", color: "--s6" },
+    { name: "MoE", color: "--s7" }
+  ],
+  findings: [
+    { topic: "AI Safety", title: "Anthropic Risk Report (August 2026): misalignment risk raised to \"Low,\" unreleased Model 2 shelved", url: "https://www.anthropic.com/aug-2026-risk-report", type: "blog", date: "2026-08-14", stars: 4,
+      summary: "Anthropic's second Risk Report under its Responsible Scaling Policy raises its assessed misalignment risk from \"Very Low\" to \"Low\" and, per Axios/SiliconANGLE coverage, details an internal \"Model 2\" that outperforms Mythos 5 but will not be released — the report describes new alignment concerns observed during its evaluation, and commentary stresses the risk-label change is driven by the assessment framework, not raw capability. The published report is partially redacted.",
+      why: "A frontier lab publicly raising its own misalignment risk tier while withholding its strongest model is the RSP mechanism doing visible work — the strongest datapoint yet for the \"evaluate before release, and sometimes don't release\" regime." },
+    { topic: "Post-training", title: "GLM-5.3: post-training alone tops the open-line coding leaderboard — and produces an unplanned cyber capability", url: "https://www.unite.ai/z-ai-launches-glm-5-3-with-frontier-coding-and-a-cyber-capability-that-outgrew-its-training/", type: "release", date: "2026-08-14", stars: 4,
+      summary: "Z.ai's GLM-5.3 keeps the GLM-5.2 base (750B MoE) unchanged — the gains are pure post-training: ~50% improvement reported on complex coding and long-horizon tasks, positioning it as the top coding model of the open-weight lineage. The headline surprise is emergent offensive-security capability Z.ai says it never targeted: 84.5% on CyberGym, 1,097 critical vulnerabilities found in real codebases, and working exploit chains — so the weights were held back at launch while Z.ai runs a \"responsible path to open release\" program (API live). HN front page.",
+      why: "The V4-Flash/V4-Pro pattern — capability jumps as pure re-post-training at fixed architecture — now comes with the sharpest documented case of post-training producing unplanned dual-use capability, forcing an open-weights lab into staged release." },
+    { topic: "MoE", title: "Qwen3.8-27B ships: the local-class Qwen3.8 is real, closing the 12-day watch", url: "https://huggingface.co/Qwen/Qwen3.8-27B", type: "release", date: "2026-08-14", stars: 4,
+      summary: "The smaller open-weights model promised alongside Qwen3.8-Max on 08-03 — still an empty placeholder at the 08-13 scan — is now live: Qwen/Qwen3.8-27B plus official FP8 and same-day community GGUF/NVFP4 builds, with LM Studio support and vLLM recipes. Coverage reports it beating Muse Glimmer 30B on many benchmarks, aimed at coding/agentic use; community reception frames it as the strongest local autonomous-coding model for the 24GB-VRAM class. Exact specs (active params, vision input) to backfill.",
+      why: "The Qwen3.8 open cohort is now complete top-to-bottom — and the local-class slot Muse Glimmer held is contested again, putting a Max-lineage sparse model on consumer GPUs." },
+    { topic: "MoE", title: "Policy-Masked Private Experts: capability access control implemented in the routing layer", url: "https://arxiv.org/abs/2608.06690", type: "paper", date: "2026-08-06", stars: 3,
+      summary: "Proposes auditable and reversible capability access control for sparse MoE models by masking \"private experts\" behind policy — restricting a capability by construction (which experts can be routed to) rather than by refusal training. (Title-level this round; details to backfill.)",
+      why: "A MoE-native answer to dual-use capability control — exactly the mechanism class the GLM-5.3 held-back-weights episode makes urgent, and a rare architecture-level (rather than training-level) safety lever." },
+    { topic: "Post-training", title: "DeepSeek's pre-announced price increase lands: ~4× across the API", url: "https://www.engadget.com/2236912/deepseek-ai-models-get-four-times-pricier/", type: "discussion", date: "2026-08-13", stars: 2,
+      summary: "The \"significant increase\" DeepSeek pre-announced alongside V4 Pro 0813's GA is now quantified: roughly 4× current API pricing. Even at ~$1.7/$3.5-per-1M-token territory it stays below Western frontier pricing, but the era of $0.435/$0.87 flagship access ends — framed as the close of DeepSeek's loss-leader phase.",
+      why: "Aggressive underpricing was a structural force on the whole post-training market; its retreat repositions open-weights self-hosting as the cost floor." },
+    { topic: "AI Safety", title: "Ecosystem coda: three days, three release-governance postures", url: "https://techstartups.com/2026/08/14/top-tech-news-today-august-14-2026-apple-anthropic-deepseek-google-ibm-pony-ai-openai-spacex-uber-more/", type: "discussion", date: "2026-08-14", stars: 2,
+      summary: "The week's arc — 08-12: three frontier releases in one day plus the 1,300-researcher competitive-pressure letter; 08-14: Anthropic withholds Model 2 citing alignment concerns while Z.ai holds GLM-5.3 weights citing emergent cyber capability, both publishing their reasoning. Release governance is visibly diverging from ship-everything, in real time, across both US and Chinese labs.",
+      why: "Two independent same-day decisions to withhold weights on safety grounds — one closed lab, one open-weights lab — mark the first week the competitive-pressure letter's ask visibly happened rather than just being signed." },
+    { topic: "MoE", title: "Share First, Route What Remains: a unified framework for token-adaptive MoE computation", url: "https://arxiv.org/abs/2608.10392", type: "paper", date: "2026-08-11", stars: 2,
+      summary: "Unifies shared-expert and routed-expert computation under a token-adaptive scheme — compute the shared component first, then route only the residual signal that remains, adapting per-token expert spend. (Title-level this round; details to backfill.)",
+      why: "Sits on the shared-vs-routed design axis every frontier MoE (K3's 2 shared, Qwen3.8's 1 shared per token) currently sets by hand — a principled version of that split would be immediately actionable." },
+    { topic: "MoE", title: "TEXAS: task-expert-aware supervision for downstream MoE adaptation", url: "https://arxiv.org/abs/2608.06396", type: "paper", date: "2026-08-06", stars: 2,
+      summary: "Supervises downstream fine-tuning of MoE LLMs with awareness of which experts a task actually engages, rather than adapting the model as an undifferentiated whole. (Title-level this round; details to backfill.)",
+      why: "Joins CARE and MoE²-LoRA in the \"fine-tune without fighting the router\" thread — the practical MoE-adaptation question as open frontier weights proliferate." }
+  ]
+};
+// ===== End of data block =====
+
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const colorOf = t => css((REPORT.topics.find(x => x.name === t) || {color:"--muted"}).color);
+
+document.getElementById("subtitle").textContent =
+  "Overnight summary · " + REPORT.date + " · " + REPORT.note;
+
+const byTopic = {};
+REPORT.topics.forEach(t => byTopic[t.name] = 0);
+REPORT.findings.forEach(f => byTopic[f.topic] = (byTopic[f.topic] || 0) + 1);
+const papers = REPORT.findings.filter(f => f.type === "paper").length;
+
+document.getElementById("tiles").innerHTML = [
+  { v: REPORT.findings.length, k: "total findings" },
+  { v: papers, k: "papers" },
+  { v: REPORT.findings.length - papers, k: "blogs / discussions" },
+  { v: REPORT.runs.length, k: "overnight runs" }
+].map(t => `<div class="tile"><div class="v">${t.v}</div><div class="k">${t.k}</div></div>`).join("");
+
+document.getElementById("tldr").innerHTML =
+  REPORT.tldr.map(t => `<li>${t}</li>`).join("");
+
+const maxN = Math.max(...Object.values(byTopic), 1);
+document.getElementById("topicbars").innerHTML = REPORT.topics.map(t => `
+  <div class="barrow">
+    <span class="lab">${t.name}</span>
+    <div class="bartrack"><div class="bar" style="width:${(byTopic[t.name]/maxN)*100}%;background:${css(t.color)}"></div></div>
+    <span class="num">${byTopic[t.name]}</span>
+  </div>`).join("");
+
+let active = "All";
+function renderFilters() {
+  document.getElementById("filters").innerHTML =
+    [`<button class="chip ${active==="All"?"active":""}" onclick="setTopic('All')">All</button>`]
+    .concat(REPORT.topics.map(t =>
+      `<button class="chip ${active===t.name?"active":""}" onclick="setTopic('${t.name}')">
+         <span class="dot" style="background:${css(t.color)}"></span>${t.name} (${byTopic[t.name]})</button>`)).join("");
+}
+function renderCards() {
+  const list = REPORT.findings
+    .filter(f => active === "All" || f.topic === active)
+    .slice().sort((a,b) => b.stars - a.stars);
+  document.getElementById("cards").innerHTML = list.map(f => `
+    <div class="card" style="border-left-color:${colorOf(f.topic)}">
+      <div class="top">
+        <h3><a href="${f.url}" target="_blank" rel="noopener">${f.title}</a></h3>
+        <span class="stars" title="importance ${f.stars}/5">${"★".repeat(f.stars)}${"☆".repeat(5-f.stars)}</span>
+      </div>
+      <div class="meta"><span class="tag">${f.topic}</span><span>${f.type}</span><span>${f.date}</span></div>
+      <p>${f.summary}</p>
+      <div class="why"><b>Why it matters:</b> ${f.why}</div>
+    </div>`).join("");
+}
+function setTopic(t) { active = t; renderFilters(); renderCards(); }
+renderFilters(); renderCards();
+
+document.getElementById("foot").textContent =
+  "autoResearch_AI · paper scan 7:00 AM · daily report 9:00 AM (US Central) · full archives in the autoResearch_AI project (claude/daily/)";
+</script>
+</body>
+</html>
